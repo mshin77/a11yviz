@@ -1,0 +1,175 @@
+---
+title: "Getting started with a11yviz (Python)"
+description: "Python text walk-through with plotnine figures."
+jupyter: python3
+vignette: >
+  %\VignetteIndexEntry{Getting started with a11yviz (Python)}
+  %\VignetteEngine{quarto::html}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{python setup}
+import a11yviz
+import pandas as pd
+from itables import show
+from plotnine import aes, geom_point, ggplot, labs
+from plotnine.data import penguins
+
+penguins = penguins.dropna()
+
+dt_options = dict(
+    buttons=["copy", "csv", "excel", "pdf"],
+    pageLength=10,
+    scrollX=True,
+    autoWidth=True,
+    classes="compact stripe hover",
+)
+```
+
+## Example
+
+```{python}
+#| label: example
+#| fig-width: 6
+#| fig-height: 4
+p = (
+    ggplot(penguins, aes("flipper_length_mm", "body_mass_g", color="species"))
+    + geom_point()
+    + labs(x="Flipper length (mm)", y="Body mass (g)")
+)
+p
+```
+
+## Audit reveals the gaps
+
+`a11y_audit()` returns one row per WCAG criterion with a status field.
+The table below filters to **actionable** rows (`status = "todo"` or `"ok"`)
+— the items where the chart needs human attention.
+
+| status   | meaning                                                              |
+|----------|----------------------------------------------------------------------|
+| `ok`     | check passes automatically                                           |
+| `todo`   | needs user action                                                    |
+| `applied`| handled by `theme_a11y()` / `scale_*_a11y()` / `a11y_layout()`       |
+| `manual` | requires human review (e.g., reflow at 320 px)                       |
+| `css`    | covered by `a11y_css()` stylesheet                                   |
+| `doc`    | document-level check; run `a11y_check_headings()` separately         |
+| `n/a`    | not applicable to this chart type (e.g., hover on plotnine)          |
+
+```{python}
+#| label: audit-example
+show(pd.DataFrame([r for r in a11yviz.a11y_audit(p) if r["status"] in ("todo", "ok")]),
+     table_id="audit-example", **dt_options)
+```
+
+Two actionable items come back as `todo`:
+
+- WCAG 1.1.1: alt text missing
+- WCAG 1.4.1: redundant group encoding (color only)
+
+## Improved
+
+```{python}
+#| label: improved
+#| fig-width: 6
+#| fig-height: 4
+p2 = (
+    ggplot(penguins, aes("flipper_length_mm", "body_mass_g",
+                         color="species", shape="species"))
+    + geom_point()
+    + a11yviz.theme_a11y()
+    + a11yviz.scale_color_a11y(palette="dark2_8")
+    + labs(x="Flipper length (mm)", y="Body mass (g)")
+)
+p2 = a11yviz.a11y_alt_text(
+    p2,
+    "Scatter of penguin body mass vs flipper length by species; "
+    "Gentoo cluster at long flippers and high body mass.",
+)
+p2
+```
+
+Four accessibility wins from a few extra lines: `shape="species"` encodes group
+via marker shape (Success Criterion 1.4.1), `scale_color_a11y("dark2_8")` swaps
+in WCAG-tagged colors that clear 3:1 on white (Success Criterion 1.4.11),
+`theme_a11y()` applies the recommended font sizes and axis styling (Success
+Criterion 1.4.4), and `a11y_alt_text()` attaches the screen-reader description
+(Success Criterion 1.1.1).
+
+## Audit again
+
+```{python}
+#| label: audit-improved
+show(pd.DataFrame([r for r in a11yviz.a11y_audit(p2) if r["status"] in ("todo", "ok")]),
+     table_id="audit-improved", **dt_options)
+```
+
+All actionable checks come back as `ok`.
+
+## WCAG rubric
+
+`a11y_rubric()` is the per-criterion reference: name, level, threshold, and the
+`a11yviz` function that addresses each. Same `criterion` field as
+`a11y_audit()`, so the two join cleanly.
+
+```{python}
+#| label: rubric
+show(pd.DataFrame(a11yviz.a11y_rubric()), table_id="rubric", **dt_options)
+```
+
+## Accessible CSS
+
+`a11y_css()` returns the path to a stylesheet that handles dark-mode tooltips,
+keyboard focus rings, table styling, and responsive layout. `a11y_css("shiny")`
+also returns the path to the Shiny add-on with skip-link, reduced-motion, and
+high-contrast rules.
+
+```{python}
+#| label: css
+import os
+os.path.basename(str(a11yviz.a11y_css()))
+```
+
+## Playground
+
+`a11yviz.run_app()` launches a local Shiny for Python playground (mirrors
+the R `run_app()`). Two tabs compare a baseline plotnine chart against the
+a11y-improved version with paired audit tables; toggle between WCAG AA and
+AAA in the sidebar. Requires the `playground` extra:
+
+```bash
+pip install "a11yviz[playground]"
+```
+
+```python
+import a11yviz
+a11yviz.run_app()
+```
+
+## More features
+
+- **Palettes** — `a11y_palette_list()` enumerates discrete palettes with WCAG
+  metadata. `a11y_palette()`, `a11y_palette_div()`, `a11y_palette_seq()`
+  resolve hex codes for plotnine / plotly.
+- **Plotly** — `a11y_layout()` applies accessible chrome, fonts, and colorway.
+  `a11y_plotly_sequences()` audits plotly's built-in discrete colorways.
+- **Document-level checks** — `a11y_check_headings()` and
+  `a11y_check_readability()` flag heading-skip and reading-level issues in
+  `.qmd` / `.Rmd` / `.md` files.
+- **Live-region announcements** — `a11y_announce()` wraps a status message in a
+  live region for screen-reader-only announcement.
+- **Alpha guidance** — `a11y_alpha_presets()` returns sensible alpha values for
+  overlay layers; verify composited contrast with `a11y_check_palette(alpha=...)`.
+
+See the [function reference](py-reference.html) for the full API.
+
+## References
+
+- Crameri, F., Shephard, G. E., & Heron, P. J. (2020). The misuse of colour in
+  science communication. *Nature Communications*, 11, 5444.
+- Nuñez, J. R., Anderton, C. R., & Renslow, R. S. (2018). Optimizing colormaps
+  with consideration for color vision deficiency to enable accurate
+  interpretation of scientific data. *PLoS ONE*, 13(7), e0199239.
+- [WCAG 2.1 specification](https://www.w3.org/TR/WCAG21/) — pass any
+  `criterion` value to `a11y_wcag_url()` for the deep link.
+- [ADA web guidance](https://www.ada.gov/resources/web-guidance/)

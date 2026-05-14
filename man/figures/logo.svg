@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 691" width="600" height="691" role="img" aria-label="a11yviz hex sticker">
+  <title>a11yviz</title>
+  <desc>Hexagonal logo for a11yviz: black background, yellow hex outline, yellow wordmark, and a yellow Aa contrast tile.</desc>
+
+  <polygon points="300,10 580,165 580,526 300,681 20,526 20,165"
+           fill="#000000" stroke="#F0E442" stroke-width="8"/>
+
+  <text x="300" y="220" font-family="Helvetica, Arial, sans-serif" font-size="92" font-weight="700"
+        text-anchor="middle" fill="#F0E442" letter-spacing="-1">a11yviz</text>
+
+  <rect x="180" y="320" width="240" height="220" fill="#F0E442" rx="16"/>
+  <text x="300" y="490" font-family="Helvetica, Arial, sans-serif" font-size="180" font-weight="700"
+        text-anchor="middle" fill="#000000" letter-spacing="-4">Aa</text>
+</svg>

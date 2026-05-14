@@ -1,0 +1,93 @@
+---
+title: "R walkthrough"
+description: "Interactive shinylive demo: ggplot defaults versus the package's accessible theme, palette, and alt text, with a per-criterion audit."
+format:
+  html:
+    embed-resources: false
+filters:
+  - shinylive
+vignette: >
+  %\VignetteIndexEntry{R walkthrough}
+  %\VignetteEngine{quarto::html}
+  %\VignetteEncoding{UTF-8}
+---
+
+The same chart rendered with ggplot defaults versus the package's
+accessible theme, palette, and alt text. Toggle the WCAG level to see
+contrast and font thresholds shift; the audit table reports
+per-criterion status for each version. Switch tabs to compare
+baseline against improved.
+
+```{shinylive-r}
+#| standalone: true
+#| viewerHeight: 720
+library(shiny)
+library(bslib)
+library(ggplot2)
+library(palmerpenguins)
+library(DT)
+library(a11yviz)
+
+penguins <- na.omit(penguins)
+
+dt_options <- list(
+  dom        = "Bfrtip",
+  buttons    = c("copy", "csv", "excel", "pdf"),
+  pageLength = 10,
+  scrollX    = TRUE,
+  autoWidth  = TRUE
+)
+
+ui <- page_sidebar(
+  sidebar = sidebar(width = 240,
+    radioButtons("level", "WCAG level:",
+                 choices = c("AA", "AAA"), selected = "AA", inline = TRUE)
+  ),
+  navset_card_underline(
+    nav_panel("Baseline",
+      plotOutput("plot_before", height = "320px"),
+      tags$h3("Audit", class = "h6 mt-3"),
+      DT::dataTableOutput("audit_before")
+    ),
+    nav_panel("Improved",
+      plotOutput("plot_after", height = "320px"),
+      tags$h3("Audit", class = "h6 mt-3"),
+      DT::dataTableOutput("audit_after")
+    )
+  )
+)
+
+server <- function(input, output) {
+  base_plot <- reactive({
+    ggplot(penguins, aes(flipper_length_mm, body_mass_g, color = species)) +
+      geom_point() +
+      labs(title = "Penguins (default ggplot)")
+  })
+
+  improved_plot <- reactive({
+    p <- ggplot(penguins, aes(flipper_length_mm, body_mass_g,
+                              color = species, shape = species)) +
+      geom_point() +
+      theme_a11y(level = input$level) +
+      scale_color_a11y(level = input$level) +
+      labs(title = "Penguins (theme_a11y + scale_color_a11y)")
+    a11y_alt_text(p, "Penguin body mass vs flipper length by species, AA accessible.")
+  })
+
+  output$plot_before <- renderPlot(base_plot())
+  output$plot_after  <- renderPlot(improved_plot())
+
+  output$audit_before <- DT::renderDT(
+    DT::datatable(a11y_audit(base_plot(), level = input$level),
+                  extensions = "Buttons", options = dt_options,
+                  class = "compact stripe hover", rownames = FALSE)
+  )
+  output$audit_after <- DT::renderDT(
+    DT::datatable(a11y_audit(improved_plot(), level = input$level),
+                  extensions = "Buttons", options = dt_options,
+                  class = "compact stripe hover", rownames = FALSE)
+  )
+}
+
+shinyApp(ui, server)
+```

@@ -1,0 +1,35 @@
+## RStudio / project files
+^.*\.Rproj$
+^\.Rproj\.user$
+
+## Source markdown / doc tooling that doesn't ship in the package
+^README\.Rmd$
+^_pkgdown\.yml$
+^docs$
+^pkgdown$
+^cran-comments\.md$
+^LICENSE\.md$
+^CITATION\.cff$
+
+## CI / editor / dev folders
+^\.github$
+^\.positai$
+^\.claude$
+^\.vscode$
+^\.idea$
+^figure$
+^dev$
+
+## Build artifacts (regenerable)
+^Rplots\.pdf$
+^.*\.Rcheck$
+^.*\.tar\.gz$
+^.*\.log$
+^.*\.stackdump$
+^vignettes/articles$
+^vignettes/\.quarto$
+^vignettes/.*_files$
+^vignettes/_extensions$
+^\.dropboxignore$
+^\.quarto$
+^tools$

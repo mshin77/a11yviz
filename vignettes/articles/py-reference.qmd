@@ -1,0 +1,62 @@
+---
+title: "Python function reference"
+description: "Every Python export grouped by purpose."
+jupyter: python3
+vignette: >
+  %\VignetteIndexEntry{Python function reference}
+  %\VignetteEngine{quarto::html}
+  %\VignetteEncoding{UTF-8}
+---
+
+**Install:** `pip install a11yviz` —
+[a11yviz on PyPI](https://pypi.org/project/a11yviz/)
+
+```{python}
+#| echo: false
+#| output: asis
+import a11yviz
+import inspect
+
+groups = [
+    ("matplotlib transforms",
+     "Composable transforms for matplotlib figures.",
+     ["theme"]),
+    ("plotly transforms",
+     "Layout and styling for plotly figures.",
+     ["layout"]),
+    ("Alt text",
+     "Attach, scaffold, or LLM-draft screen-reader descriptions.",
+     ["alt_text", "alt_template", "describe"]),
+    ("Palettes",
+     "Discrete, diverging, and sequential palettes with WCAG metadata.",
+     ["palette", "palette_div", "palette_seq",
+      "palette_info", "palette_list", "show_palette"]),
+    ("Audits and checks",
+     "Multi-criterion figure audit, rubric, and single-aspect checks.",
+     ["audit", "rubric", "check_alt_text", "check_headings",
+      "check_overlap", "check_palette", "check_palette_size",
+      "check_readability", "check_separability", "check_tabindex",
+      "plotly_sequences"]),
+    ("Shiny and HTML helpers",
+     "ARIA labels and live-region announcements for Shiny UI.",
+     ["aria_label", "announce"]),
+    ("Wrappers and utilities",
+     "One-shot helpers and resource paths.",
+     ["make_a11y", "alpha_presets", "text_spacing_ratios",
+      "css_path", "wcag_url"]),
+]
+
+for header, desc, names in groups:
+    print(f"\n## {header}\n")
+    print(f"{desc}\n")
+    print("| Function | Description |")
+    print("|---|---|")
+    for name in names:
+        obj = getattr(a11yviz, name)
+        try:
+            sig = str(inspect.signature(obj))
+        except (TypeError, ValueError):
+            sig = "()"
+        doc = (inspect.getdoc(obj) or "").split("\n")[0]
+        print(f"| `{name}{sig}` | {doc} |")
+```

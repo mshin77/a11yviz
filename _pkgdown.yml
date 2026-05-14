@@ -1,0 +1,109 @@
+url: https://mshin77.github.io/a11yviz/
+template:
+  bootstrap: 5
+  light-switch: true
+  bslib:
+    primary:   "#0072B2"
+    secondary: "#56B4E9"
+
+development:
+  mode: auto
+
+navbar:
+  structure:
+    left:  [intro, playground, reference, news]
+    right: [search, github, lightswitch]
+  components:
+    intro:
+      text: Vignette
+      menu:
+        - text: R
+          href: articles/a11yviz.html
+        - text: Python
+          href: articles/py-a11yviz.html
+    playground:
+      text: Playground
+      menu:
+        - text: R
+          href: articles/r-walkthrough.html
+        - text: Python
+          href: articles/py-walkthrough.html
+    reference:
+      text: Reference
+      menu:
+        - text: R
+          href: articles/r-reference.html
+        - text: Python
+          href: articles/py-reference.html
+
+reference:
+- title: "ggplot2 transforms"
+  desc:  "Composable additions to a ggplot chain"
+  contents:
+  - theme_a11y
+  - scale_color_a11y
+  - scale_fill_a11y
+  - scale_color_a11y_div
+  - scale_fill_a11y_div
+  - scale_color_a11y_seq
+  - scale_fill_a11y_seq
+
+- title: "plotly transforms"
+  desc:  "Layout and styling for plotly figures"
+  contents:
+  - a11y_layout
+  - a11y_ggplotly
+
+- title: "Alt text"
+  desc:  "Attach, scaffold, or LLM-draft screen-reader descriptions"
+  contents:
+  - a11y_alt_text
+  - a11y_alt_template
+  - a11y_describe
+
+- title: "Palettes"
+  desc:  "Discrete, diverging, and sequential palettes with WCAG metadata"
+  contents:
+  - a11y_palette
+  - a11y_palette_div
+  - a11y_palette_seq
+  - a11y_palette_info
+  - a11y_palette_list
+  - a11y_show_palette
+
+- title: "Audits and checks"
+  desc:  "Multi-criterion figure audit, rubric, and single-aspect checks"
+  contents:
+  - a11y_audit
+  - a11y_rubric
+  - a11y_check_alt_text
+  - a11y_check_headings
+  - a11y_check_overlap
+  - a11y_check_palette
+  - a11y_check_palette_size
+  - a11y_check_readability
+  - a11y_check_separability
+  - a11y_check_tabindex
+  - a11y_plotly_sequences
+
+- title: "Shiny and HTML helpers"
+  desc:  "ARIA labels and live-region announcements for Shiny UI"
+  contents:
+  - a11y_aria_label
+  - a11y_announce
+
+- title: "Wrappers and utilities"
+  desc:  "One-shot helpers and resource paths"
+  contents:
+  - make_a11y
+  - a11y_alpha_presets
+  - a11y_text_spacing_ratios
+  - a11y_css
+  - a11y_css_contents
+  - a11y_wcag_url
+
+- title: "Local playground"
+  desc:  "Launch the Shiny demo in a local R session"
+  contents:
+  - run_app
+

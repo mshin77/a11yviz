@@ -1,0 +1,80 @@
+---
+title: "R function reference"
+description: "Every R export grouped by purpose."
+vignette: >
+  %\VignetteIndexEntry{R function reference}
+  %\VignetteEngine{quarto::html}
+  %\VignetteEncoding{UTF-8}
+---
+
+**Install:** `remotes::install_github("mshin77/a11yviz")`
+
+```{r}
+#| echo: false
+#| output: asis
+library(a11yviz)
+
+groups <- list(
+  list(title = "ggplot2 transforms",
+       desc  = "Composable additions to a ggplot chain.",
+       names = c("theme_a11y",
+                 "scale_color_a11y",      "scale_fill_a11y",
+                 "scale_color_a11y_div",  "scale_fill_a11y_div",
+                 "scale_color_a11y_seq",  "scale_fill_a11y_seq")),
+  list(title = "plotly transforms",
+       desc  = "Layout and styling for plotly figures.",
+       names = c("a11y_layout", "a11y_ggplotly")),
+  list(title = "Alt text",
+       desc  = "Attach, scaffold, or LLM-draft screen-reader descriptions.",
+       names = c("a11y_alt_text", "a11y_alt_template", "a11y_describe")),
+  list(title = "Palettes",
+       desc  = "Discrete, diverging, and sequential palettes with WCAG metadata.",
+       names = c("a11y_palette", "a11y_palette_div", "a11y_palette_seq",
+                 "a11y_palette_info", "a11y_palette_list", "a11y_show_palette")),
+  list(title = "Audits and checks",
+       desc  = "Multi-criterion figure audit, rubric, and single-aspect checks.",
+       names = c("a11y_audit", "a11y_rubric", "a11y_check_headings",
+                 "a11y_check_palette", "a11y_check_palette_size",
+                 "a11y_check_readability", "a11y_check_separability",
+                 "a11y_plotly_sequences")),
+  list(title = "Wrappers and utilities",
+       desc  = "One-shot helpers and resource paths.",
+       names = c("make_a11y", "a11y_alpha_presets", "a11y_text_spacing_ratios",
+                 "a11y_css", "a11y_wcag_url"))
+)
+
+rd_titles <- local({
+  db <- tools::Rd_db("a11yviz")
+  out <- character()
+  for (rd in db) {
+    tags    <- vapply(rd, attr, character(1), "Rd_tag")
+    aliases <- vapply(rd[tags == "\\alias"],
+                      function(x) trimws(paste(unlist(x), collapse = "")),
+                      character(1))
+    title_text <- trimws(paste(unlist(rd[tags == "\\title"][[1]]),
+                               collapse = ""))
+    out[aliases] <- title_text
+  }
+  out
+})
+
+format_sig <- function(name) {
+  fn   <- get(name, envir = asNamespace("a11yviz"))
+  args <- formals(fn)
+  parts <- vapply(seq_along(args), function(i) {
+    nm  <- names(args)[i]
+    rhs <- paste(deparse(args[[i]], width.cutoff = 500L), collapse = "")
+    if (rhs == "") nm else paste0(nm, " = ", rhs)
+  }, character(1))
+  paste0("(", paste(parts, collapse = ", "), ")")
+}
+
+for (g in groups) {
+  cat(sprintf("\n## %s\n\n%s\n\n| Function | Description |\n|---|---|\n",
+              g$title, g$desc))
+  for (nm in g$names) {
+    title <- if (nm %in% names(rd_titles)) unname(rd_titles[nm]) else ""
+    cat(sprintf("| `%s%s` | %s |\n", nm, format_sig(nm), title))
+  }
+}
+```
