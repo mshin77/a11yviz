@@ -23,5 +23,4 @@ vignettes/articles/*_files/
 .idea/
 *.swp
 *~
-dev/
 tools/

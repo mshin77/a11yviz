@@ -1,6 +1,6 @@
 ---
 title: "Python walkthrough"
-description: "Interactive shinylive demo: write a chart, run the WCAG audit, and see per-criterion status against the supplied colors and type sizes."
+description: "Interactive shinylive demo: a plotly chart rendered with defaults versus a11yviz layout, palette, and alt text, with a per-criterion WCAG audit."
 format:
   html:
     embed-resources: false
@@ -12,332 +12,94 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-The same chart rendered with matplotlib defaults versus the package's
-accessible theme, palette, and alt text. Toggle the WCAG level to see
+The same chart rendered with plotly defaults versus the package's
+accessible layout, palette, and alt text. Toggle the WCAG level to see
 contrast and font thresholds shift; the audit table reports
-per-criterion status for each version. Use the **Starter** dropdown to
-step from defaults through themed, shape-encoded, and alt-text
-variants.
+per-criterion status for each version. Switch tabs to compare
+baseline against improved.
 
 ```{shinylive-python}
 #| standalone: true
-#| viewerHeight: 760
+#| viewerHeight: 720
 
 ## file: requirements.txt
-pyyaml
-matplotlib
+shiny
+shinywidgets
+plotly
 pandas
 plotnine
 a11yviz
 
 ## file: app.py
-from io import StringIO
-from shiny import App, ui, render, reactive
-import matplotlib.pyplot as plt
-import pandas as pd
+from shiny import App, ui, render
+from shinywidgets import output_widget, render_widget
+import plotly.express as px
 from plotnine.data import penguins
-import a11yviz
+import pandas as pd
+from a11yviz import a11y_layout, a11y_alt_text, a11y_audit
 
-# Backport of v0.1.2 audit fixes; drop when published a11yviz ships them.
-_orig_audit = a11yviz.audit
+penguins = penguins.dropna()
 
-def _min_font(fig):
-    if not type(fig).__module__.startswith("matplotlib."):
-        return None
-    sizes = []
-    for ax in fig.axes:
-        if ax.get_title():
-            sizes.append(ax.title.get_fontsize())
-        if ax.get_xlabel():
-            sizes.append(ax.xaxis.label.get_fontsize())
-        if ax.get_ylabel():
-            sizes.append(ax.yaxis.label.get_fontsize())
-        xt = ax.get_xticklabels()
-        yt = ax.get_yticklabels()
-        if xt:
-            sizes.append(xt[0].get_fontsize())
-        if yt:
-            sizes.append(yt[0].get_fontsize())
-    return min(sizes) if sizes else None
-
-def _has_redundant_encoding(fig):
-    if not type(fig).__module__.startswith("matplotlib."):
-        return None
-    paths = set()
-    lines = set()
-    has_data = False
-    for ax in fig.axes:
-        for coll in ax.collections:
-            has_data = True
-            for p in coll.get_paths():
-                paths.add(p.vertices.tobytes())
-        for line in ax.lines:
-            has_data = True
-            lines.add((line.get_linestyle(), str(line.get_marker())))
-    if not has_data:
-        return None
-    return len(paths) > 1 or len(lines) > 1
-
-def _audit_v012(fig, level="AA"):
-    rows = _orig_audit(fig, level=level)
-    threshold = 14 if level == "AAA" else 12
-    fz = _min_font(fig)
-    redundant = _has_redundant_encoding(fig)
-    for r in rows:
-        if r["check"] == "Alt text on figure" and r["status"] == "ok":
-            r["status"] = "partial"
-            r["note"]   = ("alt stored on figure; emit via the renderer's "
-                           "<img alt> -- audit cannot verify the rendered "
-                           "output")
-        elif r["criterion"] == "1.4.4" and "Recommended text size" in r["check"] and fz is not None:
-            if fz >= threshold:
-                r["status"] = "ok"
-                r["note"]   = f"min text size {fz:g} pt (>= {threshold} pt)"
-            else:
-                r["status"] = "todo"
-                r["note"]   = (f"min text size {fz:g} pt; bump to >= {threshold} pt "
-                               f'or wrap in theme(level="{level}")')
-        elif r["check"] == "Redundant group encoding" and redundant is not None:
-            if redundant:
-                r["status"] = "ok"
-                r["note"]   = "marker symbol or line dash redundantly encodes group"
-            else:
-                r["status"] = "todo"
-                r["note"]   = "add marker= or linestyle= to encode the group alongside color"
-    return rows
-a11yviz.audit = _audit_v012
-
-_penguins = penguins.dropna()
-
-_default_code = '''fig, ax = plt.subplots(figsize=(7, 4))
-for sp, sub in penguins.groupby("species"):
-    ax.scatter(sub["flipper_length_mm"],
-               sub["body_mass_g"], label=sp)
-ax.set_title("Penguins")
-ax.legend()'''
-
-_themed_code = '''with a11yviz.theme(level="AA"):
-    fig, ax = plt.subplots(figsize=(7, 4))
-    for sp, sub in penguins.groupby("species"):
-        ax.scatter(sub["flipper_length_mm"],
-                   sub["body_mass_g"], label=sp)
-    ax.set_title("Penguins")
-    ax.legend()'''
-
-_shapes_code = '''with a11yviz.theme(level="AA"):
-    fig, ax = plt.subplots(figsize=(7, 4))
-    markers = ["o", "s", "^"]
-    for i, (sp, sub) in enumerate(penguins.groupby("species")):
-        ax.scatter(sub["flipper_length_mm"],
-                   sub["body_mass_g"],
-                   label=sp, marker=markers[i])
-    ax.set_title("Penguins")
-    ax.legend()'''
-
-_alt_code = _shapes_code + '\nfig = a11yviz.alt_text(fig, "Penguin body mass vs flipper length.")'
-
-snippets = {
-    "default": ("Default matplotlib", _default_code),
-    "themed":  ("+ theme()",          _themed_code),
-    "shapes":  ("+ shape encoding",   _shapes_code),
-    "alt":     ("+ alt text",         _alt_code),
-}
-
-_copy_js = (
-    "const ta=this.closest('.code-panel').querySelector('textarea');"
-    "navigator.clipboard.writeText(ta.value);"
-    "this.textContent='Copied';"
-    "setTimeout(()=>this.textContent='Copy',1500);"
-)
-
-def code_panel(textarea_id, run_id, code):
-    icon = ui.HTML(
-        '<svg xmlns="http://www.w3.org/2000/svg" width="14" '
-        'height="14" fill="currentColor" viewBox="0 0 16 16" '
-        'style="vertical-align:-2px;margin-right:4px;">'
-        '<path d="M10.478 1.647a.5.5 0 1 0-.956-.294l-4 13a.5.5 '
-        '0 0 0 .956.294zM4.854 4.146a.5.5 0 0 1 0 .708L1.707 8'
-        'l3.147 3.146a.5.5 0 0 1-.708.708l-3.5-3.5a.5.5 0 0 1 '
-        '0-.708l3.5-3.5a.5.5 0 0 1 .708 0m6.292 0a.5.5 0 0 0 0 '
-        '.708L14.293 8l-3.147 3.146a.5.5 0 0 0 .708.708l3.5-3.5'
-        'a.5.5 0 0 0 0-.708l-3.5-3.5a.5.5 0 0 0-.708 0"/></svg>'
+def base_fig():
+    return px.scatter(
+        penguins, x="flipper_length_mm", y="body_mass_g",
+        color="species",
+        title="Penguins (default plotly)",
     )
-    return ui.div(
-        ui.div(
-            ui.span(icon, "Code (editable)",
-                    style="color:#6c757d;font-size:0.85em;"),
-            ui.div(
-                ui.tags.button("Copy", onclick=_copy_js,
-                    style=("padding:2px 10px;font-size:12px;background:#fff;"
-                           "border:1px solid #dee2e6;border-radius:3px;"
-                           "cursor:pointer;margin-right:6px;")),
-                ui.input_action_button(run_id, "Run",
-                    class_="btn btn-sm btn-primary",
-                    style="padding:2px 12px;font-size:12px;"),
-                style="margin-left:auto;display:flex;align-items:center;",
-            ),
-            style=("display:flex;align-items:center;"
-                   "margin:8px 0 4px;"),
-        ),
-        ui.input_text_area(
-            textarea_id, None, value=code,
-            width="100%", rows=6, autoresize=False,
-            spellcheck=False, resize="vertical",
-        ),
-        class_="code-panel mt-2",
+
+def improved_fig(level):
+    fig = px.scatter(
+        penguins, x="flipper_length_mm", y="body_mass_g",
+        color="species", symbol="species",
+        title="Penguins (a11y_layout + redundant shape encoding)",
     )
+    fig = a11y_layout(fig, level=level)
+    fig = a11y_alt_text(
+        fig,
+        "Penguin body mass vs flipper length by species, AA accessible.",
+    )
+    return fig
 
 app_ui = ui.page_sidebar(
     ui.sidebar(
-        ui.input_select("data_source", "Data source",
-                        choices={"penguins": "Penguins example",
-                                 "upload":   "Upload CSV",
-                                 "paste":    "Paste CSV text"},
-                        selected="penguins"),
-        ui.panel_conditional("input.data_source === 'upload'",
-            ui.input_file("data_file", None,
-                          accept=[".csv", ".tsv", ".txt",
-                                  ".xlsx", ".xls"],
-                          multiple=False)),
-        ui.panel_conditional("input.data_source === 'paste'",
-            ui.input_text_area("data_paste", None, value="",
-                               placeholder="x,y,group\n1,2,A\n3,4,B",
-                               rows=5, width="100%")),
-        ui.output_ui("data_cols_ui"),
-        ui.input_radio_buttons("level", "WCAG level:",
-                               choices=["AA", "AAA"], selected="AA",
-                               inline=True),
-        ui.input_select("snippet", "Starter:",
-                        choices={k: v[0] for k, v in snippets.items()},
-                        selected="default"),
-        ui.input_action_button("load_snippet", "Load into editor",
-                               class_="btn btn-sm btn-outline-secondary",
-                               width="100%"),
-        width=260,
+        ui.input_radio_buttons(
+            "level", "WCAG level:",
+            choices=["AA", "AAA"], selected="AA", inline=True,
+        ),
+        width=240,
     ),
     ui.navset_card_underline(
-        ui.nav_panel("Data",
-            ui.output_data_frame("data_preview"),
-        ),
-        ui.nav_panel("Chart & audit",
-            code_panel("code", "run", snippets["default"][1]),
-            ui.div(
-                ui.output_plot("chart", height="280px"),
-                style=("border:2px solid #495057;border-radius:6px;"
-                       "padding:10px 14px;margin:12px 0;background:#fff;"
-                       "box-shadow:0 1px 3px rgba(0,0,0,0.08);"),
-            ),
+        ui.nav_panel("Baseline",
+            output_widget("plot_before"),
             ui.h3("Audit", class_="h6 mt-3"),
-            ui.output_data_frame("audit_table"),
+            ui.output_data_frame("audit_before"),
+        ),
+        ui.nav_panel("Improved",
+            output_widget("plot_after"),
+            ui.h3("Audit", class_="h6 mt-3"),
+            ui.output_data_frame("audit_after"),
         ),
     ),
 )
 
-def _run(code, data):
-    ns = {"plt": plt, "pd": pd, "penguins": data, "a11yviz": a11yviz}
-    try:
-        exec(code, ns)
-        return ns.get("fig"), None
-    except Exception as e:
-        return None, f"{type(e).__name__}: {e}"
-
-def _err_fig(msg):
-    fig, ax = plt.subplots(figsize=(7, 4))
-    ax.text(0.5, 0.5, msg, ha="center", va="center", wrap=True,
-            color="#b02a37", fontsize=11, family="monospace")
-    ax.axis("off")
-    return fig
-
 def server(input, output, session):
-    def _read_table(path, ext):
-        ext = ext.lower()
-        if ext in (".xlsx", ".xls"):
-            return pd.read_excel(path)
-        if ext == ".tsv":
-            return pd.read_csv(path, sep="\t")
-        if ext == ".txt":
-            head = open(path, encoding="utf-8", errors="replace").readline()
-            return pd.read_csv(path, sep="\t" if "\t" in head else ",")
-        return pd.read_csv(path)
+    @render_widget
+    def plot_before():
+        return base_fig()
 
-    @reactive.calc
-    def df_active():
-        src = input.data_source()
-        if src == "upload":
-            f = input.data_file()
-            if not f:
-                return None, "no file uploaded yet"
-            info = f[0]
-            ext  = "." + info["name"].rsplit(".", 1)[-1].lower()
-            try:
-                return _read_table(info["datapath"], ext), None
-            except Exception as e:
-                return None, f"read error ({ext}): {e}"
-        if src == "paste":
-            text = (input.data_paste() or "").strip()
-            if not text:
-                return None, "paste CSV text first"
-            try:
-                sep = "\t" if "\t" in text.splitlines()[0] else ","
-                return pd.read_csv(StringIO(text), sep=sep), None
-            except Exception as e:
-                return None, f"parse error: {e}"
-        return _penguins, None
+    @render_widget
+    def plot_after():
+        return improved_fig(input.level())
 
     @render.data_frame
-    def data_preview():
-        d, err = df_active()
-        if err or d is None:
-            return render.DataGrid(
-                pd.DataFrame({"info": [err or "no data"]}),
-                height="320px",
-            )
-        return render.DataGrid(d.head(200), filters=True,
-                               height="500px")
-
-    @render.ui
-    def data_cols_ui():
-        d, err = df_active()
-        if err:
-            return ui.tags.small(err, style="color:#b02a37;")
-        cols = ", ".join(map(str, d.columns))
-        return ui.tags.small(
-            ui.tags.strong("Columns: "), cols,
-            style="color:#6c757d;font-size:0.78em;display:block;"
-                  "margin:6px 0 8px;line-height:1.3;"
-        )
-
-    @reactive.effect
-    @reactive.event(input.load_snippet)
-    def _load_into_editor():
-        sel = input.snippet()
-        if sel in snippets:
-            ui.update_text_area("code", value=snippets[sel][1])
-
-    @reactive.calc
-    def fig_state():
-        input.run()
-        with reactive.isolate():
-            code = input.code()
-        d, err = df_active()
-        if err:
-            return None, err
-        return _run(code, d)
-
-    @render.plot
-    def chart():
-        fig, err = fig_state()
-        return _err_fig(err) if err else fig
+    def audit_before():
+        rows = a11y_audit(base_fig(), level=input.level())
+        return render.DataGrid(pd.DataFrame(rows), height="320px")
 
     @render.data_frame
-    def audit_table():
-        fig, err = fig_state()
-        if err:
-            df = pd.DataFrame([{"criterion": "—", "check": "code error",
-                                "status": "error", "note": err}])
-        else:
-            df = pd.DataFrame(a11yviz.audit(fig, level=input.level()))
-        return render.DataGrid(df, filters=True, height="320px")
+    def audit_after():
+        rows = a11y_audit(improved_fig(input.level()), level=input.level())
+        return render.DataGrid(pd.DataFrame(rows), height="320px")
 
 app = App(app_ui, server)
 ```

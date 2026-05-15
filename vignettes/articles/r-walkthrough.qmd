@@ -21,6 +21,7 @@ baseline against improved.
 ```{shinylive-r}
 #| standalone: true
 #| viewerHeight: 720
+webr::install("a11yviz", repos = "https://mshin77.r-universe.dev")
 library(shiny)
 library(bslib)
 library(ggplot2)
