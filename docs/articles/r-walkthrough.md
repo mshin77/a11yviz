@@ -12,18 +12,17 @@ against improved.
 #|   Please set `embed-resources: false` in your metadata.
 #| standalone: true
 #| viewerHeight: 720
-local({
-  url <- "https://mshin77.r-universe.dev/bin/emscripten/contrib/4.5/a11yviz_0.1.2.tgz"
-  tmp <- tempfile(fileext = ".tgz")
-  download.file(url, tmp, quiet = TRUE, mode = "wb")
-  untar(tmp, exdir = .libPaths()[1])
+webr::install("a11yviz",
+              repos = c("https://mshin77.r-universe.dev",
+                        "https://repo.r-wasm.org/"))
+suppressPackageStartupMessages({
+  library(shiny)
+  library(bslib)
+  library(ggplot2)
+  library(palmerpenguins)
+  library(DT)
+  library(a11yviz)
 })
-library(shiny)
-library(bslib)
-library(ggplot2)
-library(palmerpenguins)
-library(DT)
-library(a11yviz)
 
 penguins <- na.omit(penguins)
 
