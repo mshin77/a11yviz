@@ -12,6 +12,10 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
+```{=html}
+<meta name="shinylive:serviceworker_dir" content=".">
+```
+
 The same chart rendered with plotnine defaults versus the package's
 accessible theme, palette, and alt text. Toggle the WCAG level to see
 contrast and font thresholds shift; the audit table reports

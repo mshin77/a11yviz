@@ -17,6 +17,15 @@ Python sibling: [a11yviz](https://github.com/mshin77/a11yviz-py).
 
 ## Installation
 
+From [R-universe](https://mshin77.r-universe.dev) (pre-built binaries
+for Windows, macOS, and Linux):
+
+    install.packages("a11yviz",
+      repos = c("https://mshin77.r-universe.dev", "https://cloud.r-project.org"))
+
+Or the development version from
+[GitHub](https://github.com/mshin77/a11yviz):
+
     install.packages("remotes")
     remotes::install_github("mshin77/a11yviz")
 

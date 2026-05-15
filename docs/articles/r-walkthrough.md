@@ -12,7 +12,12 @@ against improved.
 #|   Please set `embed-resources: false` in your metadata.
 #| standalone: true
 #| viewerHeight: 720
-webr::install("a11yviz", repos = "https://mshin77.r-universe.dev")
+local({
+  url <- "https://mshin77.r-universe.dev/bin/emscripten/contrib/4.5/a11yviz_0.1.2.tgz"
+  tmp <- tempfile(fileext = ".tgz")
+  download.file(url, tmp, quiet = TRUE, mode = "wb")
+  untar(tmp, exdir = .libPaths()[1])
+})
 library(shiny)
 library(bslib)
 library(ggplot2)

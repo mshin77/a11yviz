@@ -12,6 +12,10 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
+```{=html}
+<meta name="shinylive:serviceworker_dir" content=".">
+```
+
 The same chart rendered with ggplot defaults versus the package's
 accessible theme, palette, and alt text. Toggle the WCAG level to see
 contrast and font thresholds shift; the audit table reports
@@ -21,7 +25,12 @@ baseline against improved.
 ```{shinylive-r}
 #| standalone: true
 #| viewerHeight: 720
-webr::install("a11yviz", repos = "https://mshin77.r-universe.dev")
+local({
+  url <- "https://mshin77.r-universe.dev/bin/emscripten/contrib/4.5/a11yviz_0.1.2.tgz"
+  tmp <- tempfile(fileext = ".tgz")
+  download.file(url, tmp, quiet = TRUE, mode = "wb")
+  untar(tmp, exdir = .libPaths()[1])
+})
 library(shiny)
 library(bslib)
 library(ggplot2)

@@ -1,6 +1,7 @@
 # R function reference
 
-**Install:** `remotes::install_github("mshin77/a11yviz")`
+**Install:**
+`install.packages("a11yviz", repos = c("https://mshin77.r-universe.dev", "https://cloud.r-project.org"))`
 
 ## ggplot2 transforms
 
