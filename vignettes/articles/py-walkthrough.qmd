@@ -16,6 +16,7 @@ vignette: >
 
 ```{=html}
 <meta name="shinylive:serviceworker_dir" content=".">
+<script>document.documentElement.classList.add("playground-page");</script>
 ```
 
 The same chart rendered with plotnine defaults versus the package's
@@ -32,7 +33,7 @@ baseline against improved.
 shiny
 plotnine
 pandas
-https://mshin77.github.io/a11yviz/articles/wheels/a11yviz-0.1.2-py3-none-any.whl
+https://mshin77.github.io/a11yviz/articles/wheels/a11yviz-0.1.3-py3-none-any.whl
 
 ## file: app.py
 from shiny import App, ui, render
@@ -77,20 +78,21 @@ app_ui = ui.page_sidebar(
             "level", "WCAG level:",
             choices=["AA", "AAA"], selected="AA", inline=True,
         ),
-        width=240,
+        width=220,
     ),
     ui.navset_card_underline(
         ui.nav_panel("Baseline",
             ui.output_plot("plot_before", height="320px"),
             ui.h3("Audit", class_="h6 mt-3"),
-            ui.output_data_frame("audit_before"),
+            ui.output_table("audit_before"),
         ),
         ui.nav_panel("Improved",
             ui.output_plot("plot_after", height="320px"),
             ui.h3("Audit", class_="h6 mt-3"),
-            ui.output_data_frame("audit_after"),
+            ui.output_table("audit_after"),
         ),
     ),
+    fillable=True,
 )
 
 def server(input, output, session):
@@ -102,15 +104,13 @@ def server(input, output, session):
     def plot_after():
         return improved_plot(input.level()).draw(show=False)
 
-    @render.data_frame
+    @render.table
     def audit_before():
-        rows = a11y_audit(base_plot(), level=input.level())
-        return render.DataGrid(pd.DataFrame(rows), height="320px")
+        return pd.DataFrame(a11y_audit(base_plot(), level=input.level()))
 
-    @render.data_frame
+    @render.table
     def audit_after():
-        rows = a11y_audit(improved_plot(input.level()), level=input.level())
-        return render.DataGrid(pd.DataFrame(rows), height="320px")
+        return pd.DataFrame(a11y_audit(improved_plot(input.level()), level=input.level()))
 
 app = App(app_ui, server)
 ```

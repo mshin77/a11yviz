@@ -33,14 +33,19 @@ groups <- list(
                  "a11y_palette_info", "a11y_palette_list", "a11y_show_palette")),
   list(title = "Audits and checks",
        desc  = "Multi-criterion figure audit, rubric, and single-aspect checks.",
-       names = c("a11y_audit", "a11y_rubric", "a11y_check_headings",
-                 "a11y_check_palette", "a11y_check_palette_size",
-                 "a11y_check_readability", "a11y_check_separability",
+       names = c("a11y_audit", "a11y_rubric",
+                 "a11y_check_alt_text", "a11y_check_headings",
+                 "a11y_check_overlap", "a11y_check_palette",
+                 "a11y_check_palette_size", "a11y_check_readability",
+                 "a11y_check_separability", "a11y_check_tabindex",
                  "a11y_plotly_sequences")),
+  list(title = "Shiny and HTML helpers",
+       desc  = "ARIA labels and live-region announcements for Shiny UI.",
+       names = c("a11y_aria_label", "a11y_announce")),
   list(title = "Wrappers and utilities",
        desc  = "One-shot helpers and resource paths.",
        names = c("make_a11y", "a11y_alpha_presets", "a11y_text_spacing_ratios",
-                 "a11y_css", "a11y_wcag_url"))
+                 "a11y_css", "a11y_css_contents", "a11y_wcag_url", "run_app"))
 )
 
 rd_titles <- local({

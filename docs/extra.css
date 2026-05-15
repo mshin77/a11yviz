@@ -161,8 +161,48 @@ iframe.app-frame {
   box-shadow: none !important;
   background: transparent !important;
 }
-.page-layout-full .quarto-container,
-.page-layout-full main,
-body.template-article .page-layout-full main {
+
+/* full-bleed layout for playground pages: drop bootstrap container + col limits */
+html.playground-page .container.template-quarto,
+.container.template-quarto:has(div[class*="shinylive"]) {
   max-width: 100% !important;
+  width: 100% !important;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+html.playground-page .container.template-quarto > .row,
+.container.template-quarto:has(div[class*="shinylive"]) > .row {
+  --bs-gutter-x: 0;
+  margin-left: 0;
+  margin-right: 0;
+}
+html.playground-page .container.template-quarto > .row > main,
+html.playground-page .container.template-quarto > .row > main.col-md-9,
+.container.template-quarto:has(div[class*="shinylive"]) > .row > main,
+.container.template-quarto:has(div[class*="shinylive"]) > .row > main.col-md-9 {
+  flex: 0 0 100% !important;
+  max-width: 100% !important;
+  width: 100% !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+html.playground-page .container.template-quarto > .row > aside,
+html.playground-page .container.template-quarto > .row > nav.col-md-3,
+html.playground-page #toc,
+html.playground-page .pkgdown-sidebar,
+html.playground-page nav[data-toggle="toc"],
+.container.template-quarto:has(div[class*="shinylive"]) > .row > aside,
+.container.template-quarto:has(div[class*="shinylive"]) > .row > nav.col-md-3 {
+  display: none !important;
+}
+html.playground-page .page-header,
+.container.template-quarto:has(div[class*="shinylive"]) .page-header {
+  margin-bottom: 0.5rem !important;
+}
+@media (min-width: 1400px) {
+  html.playground-page .container.template-quarto,
+  .container.template-quarto:has(div[class*="shinylive"]) {
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
 }

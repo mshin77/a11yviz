@@ -29,7 +29,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">a11yviz</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.1.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.1.3</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -247,8 +247,16 @@
 <td>WCAG 2.1 rubric for the success criteria a11yviz addresses</td>
 </tr>
 <tr class="odd">
+<td><code>a11y_check_alt_text(alt_text, element_type = "image", decorative = FALSE, min_length = 10)</code></td>
+<td>Check alt-text presence and length (WCAG 1.1.1)</td>
+</tr>
+<tr class="even">
 <td><code>a11y_check_headings(path, min_chars = 3)</code></td>
 <td>Check Markdown / Quarto / HTML heading hierarchy and labels</td>
+</tr>
+<tr class="odd">
+<td><code>a11y_check_overlap(p, bins = 100)</code></td>
+<td>Scatter overlap check (WCAG Success Criterion 1.3.1)</td>
 </tr>
 <tr class="even">
 <td><code>a11y_check_palette(colors, bg = "#ffffff", level = "AA", alpha = 1)</code></td>
@@ -267,8 +275,34 @@
 <td>Flag color pairs below the WCAG 2.1 Success Criterion 1.4.11 contrast threshold</td>
 </tr>
 <tr class="even">
+<td><code>a11y_check_tabindex(tabindex = 0)</code></td>
+<td>Check that a tabindex value follows WCAG 2.1.1</td>
+</tr>
+<tr class="odd">
 <td><code>a11y_plotly_sequences(bg = "#ffffff", level = "AA")</code></td>
 <td>Audit plotly’s built-in discrete color sequences</td>
+</tr>
+</tbody>
+</table></section><section class="level2"><h2 id="shiny-and-html-helpers">Shiny and HTML helpers<a class="anchor" aria-label="anchor" href="#shiny-and-html-helpers"></a>
+</h2>
+<p>ARIA labels and live-region announcements for Shiny UI.</p>
+<table class="table caption-top">
+<colgroup>
+<col style="width: 50%">
+<col style="width: 50%">
+</colgroup>
+<thead><tr class="header">
+<th>Function</th>
+<th>Description</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td><code>a11y_aria_label(element_type, action, context = NULL)</code></td>
+<td>Build an ARIA label string</td>
+</tr>
+<tr class="even">
+<td><code>a11y_announce(text)</code></td>
+<td>Announce a status message to assistive technology</td>
 </tr>
 </tbody>
 </table></section><section class="level2"><h2 id="wrappers-and-utilities">Wrappers and utilities<a class="anchor" aria-label="anchor" href="#wrappers-and-utilities"></a>
@@ -301,8 +335,16 @@
 <td>Path to the accessible CSS</td>
 </tr>
 <tr class="odd">
+<td><code>a11y_css_contents(mode = c("default", "shiny"))</code></td>
+<td>Contents of the accessible CSS</td>
+</tr>
+<tr class="even">
 <td><code>a11y_wcag_url(criterion)</code></td>
 <td>WCAG 2.1 specification URL for a success criterion</td>
+</tr>
+<tr class="odd">
+<td><code>run_app(...)</code></td>
+<td>Launch the local accessibility playground</td>
 </tr>
 </tbody>
 </table></section><script id="quarto-html-after-body" type="application/javascript">
