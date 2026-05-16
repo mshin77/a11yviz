@@ -1,0 +1,169 @@
+# R walkthrough
+
+The same chart rendered with ggplot defaults versus the package’s
+accessible theme, palette, and alt text. Toggle the WCAG level to see
+contrast and font thresholds shift; the audit table reports
+per-criterion status for each version. Switch tabs to compare baseline
+against improved.
+
+``` shinylive-r
+#| '!! shinylive warning !!': |
+#|   shinylive does not work in self-contained HTML documents.
+#|   Please set `embed-resources: false` in your metadata.
+#| standalone: true
+#| viewerHeight: 720
+suppressPackageStartupMessages({
+  library(shiny)
+  library(bslib)
+  library(ggplot2)
+  library(palmerpenguins)
+})
+
+# inline a11yviz core ---------------------------------------------------------
+a11y_font_size <- function(level) if (level == "AAA") 14 else 12
+
+a11y_palette <- function(level = "AA") {
+  if (level == "AAA")
+    c("#154E8A", "#7C2C5E", "#5C5108", "#8A3A1F", "#2D5C53")
+  else
+    c("#1B9E77", "#D95F02", "#7570B3", "#E7298A",
+      "#66A61E", "#E6AB02", "#A6761D", "#666666")
+}
+
+theme_a11y <- function(level = "AA") {
+  fz <- a11y_font_size(level)
+  fg <- "#222222"; bg <- "#ffffff"; grid <- "#e5e5e5"
+  ggplot2::theme_minimal(base_size = fz) +
+    ggplot2::theme(
+      text             = ggplot2::element_text(colour = fg),
+      plot.title       = ggplot2::element_text(size = fz, face = "bold", colour = fg),
+      axis.title       = ggplot2::element_text(size = fz, colour = fg),
+      axis.text        = ggplot2::element_text(size = fz, colour = fg),
+      legend.title     = ggplot2::element_text(size = fz, colour = fg),
+      legend.text      = ggplot2::element_text(size = fz, colour = fg),
+      panel.background = ggplot2::element_rect(fill = bg, colour = NA),
+      plot.background  = ggplot2::element_rect(fill = bg, colour = NA),
+      panel.grid.major = ggplot2::element_line(colour = grid),
+      panel.grid.minor = ggplot2::element_line(colour = grid, linewidth = 0.25)
+    )
+}
+
+scale_color_a11y <- function(level = "AA") {
+  cols <- a11y_palette(level)
+  ggplot2::discrete_scale("colour", palette = function(n) cols[seq_len(n)])
+}
+
+a11y_alt_text <- function(p, text) {
+  attr(p, "alt")      <- text
+  attr(p, "a11y_alt") <- text
+  p
+}
+
+a11y_audit <- function(p, level = "AA") {
+  alt_text  <- attr(p, "a11y_alt") %||% attr(p, "alt")
+  has_alt   <- !is.null(alt_text) && nzchar(alt_text)
+  is_chart  <- inherits(p, "ggplot")
+  applied   <- if (is_chart) "applied" else "unknown"
+  threshold <- if (level == "AAA") 14 else 12
+  base_size <- p$theme$text$size
+  text_ok   <- is.numeric(base_size) && base_size >= threshold
+  m         <- p$mapping
+  has_color     <- !is.null(m$colour) || !is.null(m$fill)
+  has_redundant <- !is.null(m$shape)  || !is.null(m$linetype)
+  color_status <- if (!has_color) "n/a" else if (has_redundant) "ok" else "todo"
+  color_note   <- if (!has_color) "no color/fill aesthetic"
+                  else if (has_redundant) "shape or linetype redundantly encodes group"
+                  else "add shape= or linetype= to redundantly encode the group"
+  rows <- data.frame(
+    criterion = c("1.1.1","1.3.1","1.4.1","1.4.3","1.4.4","1.4.4",
+                  "1.4.10","1.4.11","1.4.12","1.4.13","2.4.7"),
+    check = c("Alt text on figure","Heading hierarchy","Redundant group encoding",
+              "Text contrast (Min)",
+              sprintf("Recommended text size (%s default)", level),
+              "Text resizable","Reflow at 320 CSS px","Non-text contrast",
+              "Body text spacing","Content on hover or focus","Visible keyboard focus"),
+    status = c(if (has_alt) "partial" else "todo",
+               "doc", color_status, applied,
+               if (is.numeric(base_size)) (if (text_ok) "ok" else "todo") else "manual",
+               applied, "manual", applied, "css", "n/a", "css"),
+    note = c(if (has_alt) "alt stored on figure; emit via the renderer's <img alt>"
+             else "call a11y_alt_text() or a11y_alt_template()",
+             "run a11y_check_headings() on the host document",
+             color_note,
+             "theme_a11y() / a11y_layout() set 4.5:1 text on 3:1 non-text",
+             if (is.numeric(base_size))
+               (if (text_ok) sprintf("base size %g pt (min %g pt)", base_size, threshold)
+                else sprintf("base size %g pt; bump to >= %g pt", base_size, threshold))
+             else sprintf("verify text size manually (min %g pt for %s)", threshold, level),
+             "fonts set in pt; layout scales with container",
+             "verify the host page reflows at 320 px without 2D scroll",
+             "axis lines, gridlines, error bars styled",
+             "include a11y_css() for line-height and paragraph spacing",
+             "ggplot output has no interactive hover tooltips",
+             "include a11y_css() for keyboard focus rings"),
+    stringsAsFactors = FALSE
+  )
+  if (level == "AAA")
+    rows <- rbind(rows,
+      data.frame(criterion = "1.4.6", check = "Enhanced text contrast (AAA)",
+                 status = applied, note = "AAA contrast ratios applied",
+                 stringsAsFactors = FALSE))
+  rows
+}
+
+`%||%` <- function(a, b) if (is.null(a)) b else a
+
+# app -------------------------------------------------------------------------
+penguins <- na.omit(penguins)
+shapes   <- c(16, 17, 15, 18)
+
+ui <- page_sidebar(
+  fillable = TRUE,
+  sidebar  = sidebar(width = 220,
+    radioButtons("level", "WCAG level:",
+                 choices = c("AA", "AAA"), selected = "AA", inline = TRUE)
+  ),
+  navset_card_underline(
+    nav_panel("Baseline",
+      plotOutput("plot_before", height = "320px"),
+      tags$h3("Audit", class = "h6 mt-3"),
+      tableOutput("audit_before")
+    ),
+    nav_panel("Improved",
+      plotOutput("plot_after", height = "320px"),
+      tags$h3("Audit", class = "h6 mt-3"),
+      tableOutput("audit_after")
+    )
+  )
+)
+
+server <- function(input, output) {
+  base_plot <- reactive({
+    ggplot(penguins, aes(flipper_length_mm, body_mass_g, color = species)) +
+      geom_point() +
+      labs(title = "Penguins (default ggplot)")
+  })
+
+  improved_plot <- reactive({
+    n <- length(unique(penguins$species))
+    p <- ggplot(penguins, aes(flipper_length_mm, body_mass_g,
+                              color = species, shape = species)) +
+      geom_point() +
+      scale_color_a11y(level = input$level) +
+      scale_shape_manual(values = shapes[seq_len(n)]) +
+      theme_a11y(level = input$level) +
+      labs(title = "Penguins (theme_a11y + scale_color_a11y + shape)")
+    a11y_alt_text(p, "Penguin body mass vs flipper length by species, AA accessible.")
+  })
+
+  output$plot_before <- renderPlot(base_plot())
+  output$plot_after  <- renderPlot(improved_plot())
+
+  output$audit_before <- renderTable(a11y_audit(base_plot(),     level = input$level),
+                                     striped = TRUE, hover = TRUE, width = "100%")
+  output$audit_after  <- renderTable(a11y_audit(improved_plot(), level = input$level),
+                                     striped = TRUE, hover = TRUE, width = "100%")
+}
+
+shinyApp(ui, server)
+```
