@@ -17,41 +17,6 @@ vignette: >
 ```{=html}
 <meta name="shinylive:serviceworker_dir" content=".">
 <script>document.documentElement.classList.add("playground-page");</script>
-<style>
-  .playground-collapsible { position: relative; }
-  .playground-collapsible .shinylive-editor,
-  .playground-collapsible .shinylive-container > .editor-container { display: none; }
-  .playground-collapsible.show-editor .shinylive-editor,
-  .playground-collapsible.show-editor .shinylive-container > .editor-container { display: flex; }
-  .playground-collapsible .shinylive-wrapper,
-  .playground-collapsible .shinylive-container { overflow: visible; max-height: none; }
-  .playground-collapsible .shinylive-viewer,
-  .playground-collapsible iframe.app-frame { width: 100%; }
-  .playground-fold-toggle {
-    position: absolute; left: 8px; top: 8px; z-index: 20;
-    padding: 0.25rem 0.6rem;
-    background: rgba(255,255,255,0.95);
-    border: 1px solid rgba(0,0,0,0.15);
-    border-radius: 0.25rem;
-    font-size: 0.85rem; line-height: 1; cursor: pointer;
-    display: inline-flex; align-items: center; gap: 0.4rem;
-  }
-  .playground-fold-toggle:focus-visible { outline: 2px solid #0072B2; outline-offset: 2px; }
-  .playground-fold-toggle .chevron { display: inline-block; transition: transform 0.18s ease; }
-  .playground-collapsible.show-editor .playground-fold-toggle .chevron { transform: rotate(90deg); }
-</style>
-<script>
-  document.addEventListener('click', function (e) {
-    var btn = e.target.closest('.playground-fold-toggle');
-    if (!btn) return;
-    var shell = btn.closest('.playground-collapsible');
-    if (!shell) return;
-    var expanded = shell.classList.toggle('show-editor');
-    btn.setAttribute('aria-expanded', String(expanded));
-    var label = btn.querySelector('.toggle-label');
-    if (label) label.textContent = expanded ? 'Hide code' : 'Show code';
-  });
-</script>
 ```
 
 The same chart rendered with ggplot defaults versus the package's
@@ -60,20 +25,14 @@ contrast and font thresholds shift; the audit table reports
 per-criterion status for each version. Switch tabs to compare
 baseline against improved.
 
-Click **Show code** at the top-left to unfold the editor. Edit the
-code to swap in a different dataset, change aesthetics, or tweak the
-theme — the chart and audit update on the right. To load a CSV, paste
-it into a `read.csv(text = "...")` call, or replace `penguins` with
-any data frame already in scope.
+Edit the code on the left to swap in a different dataset, change
+aesthetics, or tweak the theme — the chart and audit update on the
+right. To load a CSV, paste it into a `read.csv(text = "...")` call,
+or replace `penguins` with any data frame already in scope.
 
 ## Live demo {.unnumbered}
 
-::: {.playground-collapsible role="region" aria-label="Interactive R Shiny demo: baseline vs accessible ggplot, with per-criterion WCAG audit"}
-
-<button type="button" class="playground-fold-toggle" aria-expanded="false">
-  <span class="chevron" aria-hidden="true">›</span>
-  <span class="toggle-label">Show code</span>
-</button>
+::: {role="region" aria-label="Interactive R Shiny demo: baseline vs accessible ggplot, with per-criterion WCAG audit"}
 
 ```{shinylive-r}
 #| standalone: true
