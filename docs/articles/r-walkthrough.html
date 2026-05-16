@@ -78,11 +78,14 @@ ul.task-list li input[type="checkbox"] {
 <meta name="shinylive:serviceworker_dir" content=".">
 <script>document.documentElement.classList.add("playground-page");</script>
 <style>
+  .shinylive-container.editor-viewer { gap: 0; }
+  .shinylive-container.editor-viewer > .editor,
   .shinylive-container .shinylive-editor,
-  .shinylive-container .editor-container { flex: 0 0 35%; width: 35%; max-width: 35%; }
+  .shinylive-container .editor-container { flex: 0 0 33% !important; width: 33% !important; max-width: 33%; min-width: 33%; }
+  .shinylive-container.editor-viewer > .viewer,
   .shinylive-container .shinylive-viewer,
   .shinylive-container .shinylive-output-cell,
-  .shinylive-container iframe.app-frame { flex: 1 1 65%; }
+  .shinylive-container iframe.app-frame { flex: 1 1 67% !important; width: 67%; }
 </style>
 <p>The same chart rendered with ggplot defaults versus the package’s accessible theme, palette, and alt text. Toggle the WCAG level to see contrast and font thresholds shift; the audit table reports per-criterion status for each version. Switch tabs to compare baseline against improved.</p>
 <p>Edit the code on the left to swap in a different dataset, change aesthetics, or tweak the theme — the chart and audit update on the right. To load a CSV, paste it into a <code>read.csv(text = "...")</code> call, or replace <code>penguins</code> with any data frame already in scope.</p>
