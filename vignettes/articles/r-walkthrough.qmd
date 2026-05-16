@@ -161,12 +161,7 @@ panel_body <- function(plot_id, audit_id) {
   )
 }
 
-ui <- page_sidebar(
-  fillable = TRUE,
-  sidebar  = sidebar(width = 240,
-    radioButtons("level", "WCAG level:",
-                 choices = c("AA", "AAA"), selected = "AA", inline = TRUE)
-  ),
+ui <- page_fillable(
   tags$head(tags$style(HTML("
     html, body { height: 100%; }
     .bslib-card { height: 100%; }
@@ -183,6 +178,8 @@ ui <- page_sidebar(
       table.dataTable td, table.dataTable th { padding: 4px 6px; font-size: 0.85rem; }
     }
   "))),
+  radioButtons("level", "WCAG level:",
+               choices = c("AA", "AAA"), selected = "AA", inline = TRUE),
   navset_card_underline(
     nav_panel("Baseline", panel_body("plot_before", "audit_before")),
     nav_panel("Improved", panel_body("plot_after",  "audit_after"))

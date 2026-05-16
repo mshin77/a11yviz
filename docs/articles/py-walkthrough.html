@@ -167,20 +167,16 @@ def panel_body(plot_id, audit_id):
         ui.div(ui.output_ui(audit_id), class_="table-responsive"),
     )
 
-app_ui = ui.page_sidebar(
-    ui.sidebar(
-        ui.input_radio_buttons(
-            "level", "WCAG level:",
-            choices=["AA", "AAA"], selected="AA", inline=True,
-        ),
-        width=240,
-    ),
+app_ui = ui.page_fillable(
     ui.tags.head(ui.tags.style(panel_css)),
+    ui.input_radio_buttons(
+        "level", "WCAG level:",
+        choices=["AA", "AAA"], selected="AA", inline=True,
+    ),
     ui.navset_card_underline(
         ui.nav_panel("Baseline", panel_body("plot_before", "audit_before")),
         ui.nav_panel("Improved", panel_body("plot_after",  "audit_after")),
     ),
-    fillable=True,
 )
 
 def server(input, output, session):
