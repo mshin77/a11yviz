@@ -22,6 +22,6 @@ it in Quarto via \verb{css:}, in Shiny via \code{tags$link()},
 or copy it into a project's \verb{www/}.
 }
 \examples{
-a11y_css()
-a11y_css("shiny")
+basename(a11y_css())
+length(a11y_css("shiny"))
 }

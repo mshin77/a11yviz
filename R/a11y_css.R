@@ -12,8 +12,8 @@
 #' @return Character path (default) or character vector of paths (shiny).
 #' @export
 #' @examples
-#' a11y_css()
-#' a11y_css("shiny")
+#' basename(a11y_css())
+#' length(a11y_css("shiny"))
 a11y_css <- function(mode = c("default", "shiny")) {
   mode <- match.arg(mode)
   base <- system.file("css", "a11yviz.css", package = "a11yviz")

@@ -5,6 +5,10 @@
   --bs-success-text-emphasis: #003d6e;
   --a11y-hover:           #ffffff;
   --a11y-hover-bg:        #0072B2;
+  --a11y-focus-ring:      #0050a0;
+}
+
+[data-bs-theme="dark"] {
   --a11y-focus-ring:      #f0e442;
 }
 
@@ -160,6 +164,18 @@ iframe.app-frame {
   border: 0 !important;
   box-shadow: none !important;
   background: transparent !important;
+}
+
+/* responsive iframe height on playground pages */
+html.playground-page iframe.app-frame,
+html.playground-page div[class*="shinylive"] iframe {
+  height: clamp(640px, 88vh, 1040px) !important;
+}
+@media (max-width: 768px) {
+  html.playground-page iframe.app-frame,
+  html.playground-page div[class*="shinylive"] iframe {
+    height: clamp(560px, 92vh, 900px) !important;
+  }
 }
 
 /* full-bleed layout for playground pages: drop bootstrap container + col limits */
