@@ -156,8 +156,8 @@ server <- function(input, output) {
     a11y_alt_text(p, "Penguin body mass vs flipper length by species, AA accessible.")
   })
 
-  output$plot_before <- renderPlot(base_plot())
-  output$plot_after  <- renderPlot(improved_plot())
+  output$plot_before <- renderPlot(base_plot(),     height = 320, res = 96)
+  output$plot_after  <- renderPlot(improved_plot(), height = 320, res = 96)
 
   output$audit_before <- renderTable(a11y_audit(base_plot(),     level = input$level),
                                      striped = TRUE, hover = TRUE, width = "100%")

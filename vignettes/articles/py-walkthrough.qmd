@@ -96,11 +96,11 @@ app_ui = ui.page_sidebar(
 )
 
 def server(input, output, session):
-    @render.plot
+    @render.plot(width=640, height=320)
     def plot_before():
         return base_plot().draw(show=False)
 
-    @render.plot
+    @render.plot(width=640, height=320)
     def plot_after():
         return improved_plot(input.level()).draw(show=False)
 
