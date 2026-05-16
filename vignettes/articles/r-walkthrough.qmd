@@ -17,6 +17,13 @@ vignette: >
 ```{=html}
 <meta name="shinylive:serviceworker_dir" content=".">
 <script>document.documentElement.classList.add("playground-page");</script>
+<style>
+  .shinylive-container .shinylive-editor,
+  .shinylive-container .editor-container { flex: 0 0 35%; width: 35%; max-width: 35%; }
+  .shinylive-container .shinylive-viewer,
+  .shinylive-container .shinylive-output-cell,
+  .shinylive-container iframe.app-frame { flex: 1 1 65%; }
+</style>
 ```
 
 The same chart rendered with ggplot defaults versus the package's
