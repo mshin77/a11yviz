@@ -1,13 +1,11 @@
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
-
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <meta charset="utf-8">
 <meta name="generator" content="quarto-1.8.25">
-
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-
 <meta name="description" content="Interactive shinylive demo: ggplot defaults versus the package’s accessible theme, palette, and alt text, with a per-criterion audit.">
-
 <title>R walkthrough</title>
 <style>
 code{white-space: pre-wrap;}
@@ -22,37 +20,19 @@ ul.task-list li input[type="checkbox"] {
   vertical-align: middle;
 }
 </style>
-
-
-<script src="r-walkthrough_files/libs/clipboard/clipboard.min.js"></script>
-<script src="r-walkthrough_files/libs/quarto-html/quarto.js" type="module"></script>
-<script src="r-walkthrough_files/libs/quarto-html/tabsets/tabsets.js" type="module"></script>
-<script src="r-walkthrough_files/libs/quarto-html/axe/axe-check.js" type="module"></script>
-<script src="r-walkthrough_files/libs/quarto-html/popper.min.js"></script>
-<script src="r-walkthrough_files/libs/quarto-html/tippy.umd.min.js"></script>
-<script src="r-walkthrough_files/libs/quarto-html/anchor.min.js"></script>
-<link href="r-walkthrough_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<script src="r-walkthrough_files/libs/clipboard/clipboard.min.js"></script><script src="r-walkthrough_files/libs/quarto-html/quarto.js" type="module"></script><script src="r-walkthrough_files/libs/quarto-html/tabsets/tabsets.js" type="module"></script><script src="r-walkthrough_files/libs/quarto-html/axe/axe-check.js" type="module"></script><script src="r-walkthrough_files/libs/quarto-html/popper.min.js"></script><script src="r-walkthrough_files/libs/quarto-html/tippy.umd.min.js"></script><script src="r-walkthrough_files/libs/quarto-html/anchor.min.js"></script><link href="r-walkthrough_files/libs/quarto-html/tippy.css" rel="stylesheet">
 <link href="r-walkthrough_files/libs/quarto-html/quarto-syntax-highlighting-7b89279ff1a6dce999919e0e67d4d9ec.css" rel="stylesheet" id="quarto-text-highlighting-styles">
-<script src="r-walkthrough_files/libs/bootstrap/bootstrap.min.js"></script>
-<link href="r-walkthrough_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<script src="r-walkthrough_files/libs/bootstrap/bootstrap.min.js"></script><link href="r-walkthrough_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
 <link href="r-walkthrough_files/libs/bootstrap/bootstrap-9e3ffae467580fdb927a41352e75a2e0.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <meta name="shinylive:serviceworker_dir" content=".">
-<script src="r-walkthrough_files/libs/quarto-contrib/shinylive-0.10.8/shinylive/load-shinylive-sw.js" type="module"></script>
-<script src="r-walkthrough_files/libs/quarto-contrib/shinylive-0.10.8/shinylive/run-python-blocks.js" type="module"></script>
-<link href="r-walkthrough_files/libs/quarto-contrib/shinylive-0.10.8/shinylive/shinylive.css" rel="stylesheet">
+<script src="r-walkthrough_files/libs/quarto-contrib/shinylive-0.10.8/shinylive/load-shinylive-sw.js" type="module"></script><script src="r-walkthrough_files/libs/quarto-contrib/shinylive-0.10.8/shinylive/run-python-blocks.js" type="module"></script><link href="r-walkthrough_files/libs/quarto-contrib/shinylive-0.10.8/shinylive/shinylive.css" rel="stylesheet">
 <link href="r-walkthrough_files/libs/quarto-contrib/shinylive-quarto-css/shinylive-quarto.css" rel="stylesheet">
-
-
 </head>
-
 <body class="quarto-light">
 
 <div id="quarto-content" class="page-columns page-rows-contents page-layout-full">
 
-<main class="content column-page" id="quarto-document-content">
-
-<header id="title-block-header" class="quarto-title-block default">
-<div class="quarto-title">
+<main class="content column-page" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block default"><div class="quarto-title">
 <h1 class="title">R walkthrough</h1>
 </div>
 
@@ -72,12 +52,8 @@ ul.task-list li input[type="checkbox"] {
   
 
 
-</header>
-
-
-<meta name="shinylive:serviceworker_dir" content=".">
-<script>document.documentElement.classList.add("playground-page");</script>
-<style>
+</header><meta name="shinylive:serviceworker_dir" content=".">
+<script>document.documentElement.classList.add("playground-page");</script><style>
   .shinylive-container.editor-viewer { gap: 0; }
   .shinylive-container.editor-viewer > .editor,
   .shinylive-container .shinylive-editor,
@@ -89,8 +65,7 @@ ul.task-list li input[type="checkbox"] {
 </style>
 <p>The same chart rendered with ggplot defaults versus the package’s accessible theme, palette, and alt text. Toggle the WCAG level to see contrast and font thresholds shift; the audit table reports per-criterion status for each version. Switch tabs to compare baseline against improved.</p>
 <p>Edit the code on the left to swap in a different dataset, change aesthetics, or tweak the theme — the chart and audit update on the right. To load a CSV, paste it into a <code>read.csv(text = "...")</code> call, or replace <code>penguins</code> with any data frame already in scope.</p>
-<section id="live-demo" class="level2 unnumbered">
-<h2 class="unnumbered anchored" data-anchor-id="live-demo">Live demo</h2>
+<section id="live-demo" class="level2 unnumbered"><h2 class="unnumbered anchored" data-anchor-id="live-demo">Live demo</h2>
 <div role="region" aria-label="Interactive R Shiny demo: baseline vs accessible ggplot, with per-criterion WCAG audit">
 <pre class="shinylive-r" data-engine="r"><code>#| '!! shinylive warning !!': |
 #|   shinylive does not work in self-contained HTML documents.
@@ -277,11 +252,7 @@ server &lt;- function(input, output) {
 
 shinyApp(ui, server)</code></pre>
 </div>
-</section>
-
-</main>
-<!-- /main column -->
-<script id="quarto-html-after-body" type="application/javascript">
+</section></main><!-- /main column --><script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {
     const icon = "";
     const anchorJS = new window.AnchorJS();
@@ -686,4 +657,5 @@ shinyApp(ui, server)</code></pre>
 
 
 
-</body></html>
+</body>
+</html>
