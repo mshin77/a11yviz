@@ -17,7 +17,7 @@ against improved.
 shiny
 plotnine
 pandas
-https://mshin77.github.io/a11yviz/articles/wheels/a11yviz-0.1.3-py3-none-any.whl
+a11yviz==0.1.3
 
 ## file: app.py
 from shiny import App, ui, render

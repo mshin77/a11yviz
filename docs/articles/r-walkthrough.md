@@ -125,12 +125,12 @@ ui <- page_sidebar(
   ),
   navset_card_underline(
     nav_panel("Baseline",
-      plotOutput("plot_before", height = "320px"),
+      plotOutput("plot_before", height = 320),
       tags$h3("Audit", class = "h6 mt-3"),
       tableOutput("audit_before")
     ),
     nav_panel("Improved",
-      plotOutput("plot_after", height = "320px"),
+      plotOutput("plot_after", height = 320),
       tags$h3("Audit", class = "h6 mt-3"),
       tableOutput("audit_after")
     )
