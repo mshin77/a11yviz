@@ -13,13 +13,14 @@ against improved.
 #|   shinylive does not work in self-contained HTML documents.
 #|   Please set `embed-resources: false` in your metadata.
 #| standalone: true
-#| viewerHeight: 860
+#| viewerHeight: 1100
 #| components: [viewer]
 
 ## file: requirements.txt
 shiny
 plotnine
 pandas
+itables
 a11yviz==0.1.3
 
 ## file: app.py
@@ -30,10 +31,14 @@ from plotnine import (
 )
 from plotnine.data import penguins
 import pandas as pd
+from itables import to_html_datatable
 from a11yviz import theme_a11y, a11y_palette, a11y_alt_text, a11y_audit
 
+dt_opts = {"pageLength": 10, "dom": "tip", "scrollX": True,
+           "columnDefs": [{"className": "dt-left", "targets": "_all"}]}
+
 penguins = penguins.dropna()
-shapes = ["o", "s", "^", "D"]
+shapes = ["o", "^", "D", "s"]
 
 def base_plot():
     return (
@@ -48,10 +53,10 @@ def improved_plot(level):
         ggplot(penguins,
                aes("flipper_length_mm", "body_mass_g",
                    color="species", shape="species"))
-        + geom_point()
+        + geom_point(size=2.6, alpha=0.85)
         + scale_color_manual(values=palette)
         + scale_shape_manual(values=shapes[: penguins["species"].nunique()])
-        + theme_a11y(level=level)
+        + theme_a11y(level=level, base_family="DejaVu Sans")
         + labs(title="Penguins (theme_a11y + a11y_palette + shape encoding)")
     )
     return a11y_alt_text(
@@ -64,9 +69,9 @@ html, body { height: 100%; }
 .bslib-card { height: 100%; }
 .tab-content { display: flex; flex-direction: column; }
 .tab-pane.active { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; }
-.plot-wrap { flex: 1 1 auto; min-height: 320px; height: clamp(320px, 55vh, 620px); }
+.plot-wrap { flex: 1 1 auto; min-height: 420px; height: clamp(420px, 45vh, 540px); }
 .table-responsive { overflow-x: auto; }
-table { width: 100%; }
+table.dataTable { width: 100% !important; }
 """
 
 def panel_body(plot_id, audit_id):
@@ -76,7 +81,7 @@ def panel_body(plot_id, audit_id):
             class_="plot-wrap",
         ),
         ui.h2("Audit", class_="h6 mt-3"),
-        ui.div(ui.output_table(audit_id), class_="table-responsive"),
+        ui.div(ui.output_ui(audit_id), class_="table-responsive"),
     )
 
 app_ui = ui.page_sidebar(
@@ -112,13 +117,17 @@ def server(input, output, session):
     def plot_after():
         return improved().draw(show=False)
 
-    @render.table(index=False, classes="table table-striped table-hover")
+    @render.ui
     def audit_before():
-        return pd.DataFrame(a11y_audit(base(), level=input.level()))
+        df = pd.DataFrame(a11y_audit(base(), level=input.level()))
+        return ui.HTML(to_html_datatable(df, classes="compact stripe hover",
+                                         showIndex=False, dt_args=dt_opts))
 
-    @render.table(index=False, classes="table table-striped table-hover")
+    @render.ui
     def audit_after():
-        return pd.DataFrame(a11y_audit(improved(), level=input.level()))
+        df = pd.DataFrame(a11y_audit(improved(), level=input.level()))
+        return ui.HTML(to_html_datatable(df, classes="compact stripe hover",
+                                         showIndex=False, dt_args=dt_opts))
 
 app = App(app_ui, server)
 ```

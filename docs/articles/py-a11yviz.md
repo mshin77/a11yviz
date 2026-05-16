@@ -4,7 +4,7 @@
 import a11yviz
 import pandas as pd
 from itables import show
-from plotnine import aes, geom_point, ggplot, labs
+from plotnine import aes, geom_point, ggplot, labs, scale_shape_manual
 from plotnine.data import penguins
 
 penguins = penguins.dropna()
@@ -68,8 +68,9 @@ Two actionable items come back as `todo`:
 p2 = (
     ggplot(penguins, aes("flipper_length_mm", "body_mass_g",
                          color="species", shape="species"))
-    + geom_point()
-    + a11yviz.theme_a11y()
+    + geom_point(size=2.6, alpha=0.85)
+    + scale_shape_manual(values=["o", "^", "D"])
+    + a11yviz.theme_a11y(base_family="DejaVu Sans")
     + a11yviz.scale_color_a11y(palette="dark2_8")
     + labs(x="Flipper length (mm)", y="Body mass (g)")
 )
@@ -81,43 +82,7 @@ p2 = a11yviz.a11y_alt_text(
 p2
 ```
 
-    findfont: Font family '' not found.
-    findfont: Font family '' not found.
-    findfont: Font family '' not found.
-    findfont: Font family '' not found.
-    findfont: Font family '' not found.
-    findfont: Font family '' not found.
-    findfont: Font family '' not found.
-    findfont: Font family '' not found.
-    findfont: Font family '' not found.
-    findfont: Font family '' not found.
-    findfont: Font family '' not found.
-    findfont: Font family '' not found.
-    findfont: Font family '' not found.
-    findfont: Font family '' not found.
-    findfont: Font family '' not found.
-    findfont: Font family '' not found.
-    findfont: Font family '' not found.
-    findfont: Font family '' not found.
-    findfont: Font family '' not found.
-    findfont: Font family '' not found.
-    findfont: Font family '' not found.
-    findfont: Font family '' not found.
-    findfont: Font family '' not found.
-    findfont: Font family '' not found.
-    findfont: Font family '' not found.
-    findfont: Font family '' not found.
-    findfont: Font family '' not found.
-    findfont: Font family '' not found.
-    findfont: Font family '' not found.
-    findfont: Font family '' not found.
-    findfont: Font family '' not found.
-    findfont: Font family '' not found.
-    findfont: Font family '' not found.
-    findfont: Font family '' not found.
-    findfont: Font family '' not found.
-
-![](py-a11yviz_files/figure-html/improved-output-2.png)
+![](py-a11yviz_files/figure-html/improved-output-1.png)
 
 Four accessibility wins from a few extra lines: `shape="species"`
 encodes group via marker shape (Success Criterion 1.4.1),
@@ -190,35 +155,6 @@ pip install "a11yviz[playground]"
 import a11yviz
 a11yviz.run_app()
 ```
-
-## More features
-
-- **Palettes** —
-  [`a11y_palette_list()`](https://mshin77.github.io/a11yviz/reference/a11y_palette_list.md)
-  enumerates discrete palettes with WCAG metadata.
-  [`a11y_palette()`](https://mshin77.github.io/a11yviz/reference/a11y_palette.md),
-  [`a11y_palette_div()`](https://mshin77.github.io/a11yviz/reference/a11y_palette_div.md),
-  [`a11y_palette_seq()`](https://mshin77.github.io/a11yviz/reference/a11y_palette_seq.md)
-  resolve hex codes for plotnine / plotly.
-- **Plotly** —
-  [`a11y_layout()`](https://mshin77.github.io/a11yviz/reference/a11y_layout.md)
-  applies accessible chrome, fonts, and colorway.
-  [`a11y_plotly_sequences()`](https://mshin77.github.io/a11yviz/reference/a11y_plotly_sequences.md)
-  audits plotly’s built-in discrete colorways.
-- **Document-level checks** —
-  [`a11y_check_headings()`](https://mshin77.github.io/a11yviz/reference/a11y_check_headings.md)
-  and
-  [`a11y_check_readability()`](https://mshin77.github.io/a11yviz/reference/a11y_check_readability.md)
-  flag heading-skip and reading-level issues in `.qmd` / `.Rmd` / `.md`
-  files.
-- **Live-region announcements** —
-  [`a11y_announce()`](https://mshin77.github.io/a11yviz/reference/a11y_announce.md)
-  wraps a status message in a live region for screen-reader-only
-  announcement.
-- **Alpha guidance** —
-  [`a11y_alpha_presets()`](https://mshin77.github.io/a11yviz/reference/a11y_alpha_presets.md)
-  returns sensible alpha values for overlay layers; verify composited
-  contrast with `a11y_check_palette(alpha=...)`.
 
 See the [function
 reference](https://mshin77.github.io/a11yviz/articles/py-reference.md)

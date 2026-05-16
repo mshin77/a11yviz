@@ -12,7 +12,7 @@ vignette: >
 import a11yviz
 import pandas as pd
 from itables import show
-from plotnine import aes, geom_point, ggplot, labs
+from plotnine import aes, geom_point, ggplot, labs, scale_shape_manual
 from plotnine.data import penguins
 
 penguins = penguins.dropna()
@@ -76,8 +76,9 @@ Two actionable items come back as `todo`:
 p2 = (
     ggplot(penguins, aes("flipper_length_mm", "body_mass_g",
                          color="species", shape="species"))
-    + geom_point()
-    + a11yviz.theme_a11y()
+    + geom_point(size=2.6, alpha=0.85)
+    + scale_shape_manual(values=["o", "^", "D"])
+    + a11yviz.theme_a11y(base_family="DejaVu Sans")
     + a11yviz.scale_color_a11y(palette="dark2_8")
     + labs(x="Flipper length (mm)", y="Body mass (g)")
 )
@@ -145,21 +146,6 @@ pip install "a11yviz[playground]"
 import a11yviz
 a11yviz.run_app()
 ```
-
-## More features
-
-- **Palettes** — `a11y_palette_list()` enumerates discrete palettes with WCAG
-  metadata. `a11y_palette()`, `a11y_palette_div()`, `a11y_palette_seq()`
-  resolve hex codes for plotnine / plotly.
-- **Plotly** — `a11y_layout()` applies accessible chrome, fonts, and colorway.
-  `a11y_plotly_sequences()` audits plotly's built-in discrete colorways.
-- **Document-level checks** — `a11y_check_headings()` and
-  `a11y_check_readability()` flag heading-skip and reading-level issues in
-  `.qmd` / `.Rmd` / `.md` files.
-- **Live-region announcements** — `a11y_announce()` wraps a status message in a
-  live region for screen-reader-only announcement.
-- **Alpha guidance** — `a11y_alpha_presets()` returns sensible alpha values for
-  overlay layers; verify composited contrast with `a11y_check_palette(alpha=...)`.
 
 See the [function reference](py-reference.html) for the full API.
 

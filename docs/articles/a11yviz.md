@@ -45,7 +45,7 @@ where the chart needs human attention.
 |----|----|
 | `ok` | check passes automatically |
 | `todo` | needs user action |
-| `applied` | handled by [`theme_a11y()`](https://mshin77.github.io/a11yviz/reference/theme_a11y.md) / [`scale_color_a11y()`](https://mshin77.github.io/a11yviz/reference/scale_a11y.md) / [`a11y_layout()`](https://mshin77.github.io/a11yviz/reference/a11y_layout.md) |
+| `applied` | handled by [`theme_a11y()`](https://mshin77.github.io/a11yviz/reference/theme_a11y.md) / `scale_*_a11y()` / [`a11y_layout()`](https://mshin77.github.io/a11yviz/reference/a11y_layout.md) |
 | `manual` | requires human review (e.g., reflow at 320 px) |
 | `css` | covered by [`a11y_css()`](https://mshin77.github.io/a11yviz/reference/a11y_css.md) stylesheet |
 | `doc` | document-level check; run [`a11y_check_headings()`](https://mshin77.github.io/a11yviz/reference/a11y_check_headings.md) separately |
@@ -57,15 +57,16 @@ dt_show(subset(a11y_audit(p), status %in% c("todo", "ok")))
 
 Two actionable items come back as `todo`:
 
-- WCAG 2.1: alt text missing
-- WCAG 2.1: redundant group encoding (color only)
+- WCAG 1.1.1: alt text missing
+- WCAG 1.4.1: redundant group encoding (color only)
 
 ## Improved
 
 ``` r
 p_a11y <- ggplot(penguins, aes(flipper_length_mm, body_mass_g,
                                color = species, shape = species)) +
-  geom_point() +
+  geom_point(size = 2.6, alpha = 0.85) +
+  scale_shape_manual(values = c(16, 17, 18)) +
   theme_a11y() +
   scale_color_a11y("dark2_8") +
   labs(x = "Flipper length (mm)", y = "Body mass (g)")
@@ -130,36 +131,6 @@ AA and AAA in the sidebar. Requires `shiny`, `bslib`, and `DT`.
 ``` r
 run_app()
 ```
-
-## More features
-
-- **Palettes** —
-  [`a11y_palette_list()`](https://mshin77.github.io/a11yviz/reference/a11y_palette_list.md)
-  enumerates discrete, diverging, and sequential palettes with WCAG
-  metadata.
-  [`a11y_palette()`](https://mshin77.github.io/a11yviz/reference/a11y_palette.md),
-  [`a11y_palette_div()`](https://mshin77.github.io/a11yviz/reference/a11y_palette_div.md),
-  [`a11y_palette_seq()`](https://mshin77.github.io/a11yviz/reference/a11y_palette_seq.md)
-  resolve hex codes; `scale_*_a11y_*()` apply them in ggplot.
-- **Plotly** —
-  [`a11y_layout()`](https://mshin77.github.io/a11yviz/reference/a11y_layout.md)
-  applies accessible chrome, fonts, and colorway.
-  [`a11y_ggplotly()`](https://mshin77.github.io/a11yviz/reference/a11y_ggplotly.md)
-  converts a ggplot to plotly with alt text preserved.
-- **Document-level checks** —
-  [`a11y_check_headings()`](https://mshin77.github.io/a11yviz/reference/a11y_check_headings.md)
-  and
-  [`a11y_check_readability()`](https://mshin77.github.io/a11yviz/reference/a11y_check_readability.md)
-  flag heading-skip and reading-level issues in `.qmd` / `.Rmd` / `.md`
-  files.
-- **Live-region announcements** —
-  [`a11y_announce()`](https://mshin77.github.io/a11yviz/reference/a11y_announce.md)
-  wraps a status message in a live region for screen-reader-only
-  announcement.
-- **Alpha guidance** —
-  [`a11y_alpha_presets()`](https://mshin77.github.io/a11yviz/reference/a11y_alpha_presets.md)
-  returns sensible alpha values for overlay layers; verify composited
-  contrast with `a11y_check_palette(alpha = ...)`.
 
 See the [function
 reference](https://mshin77.github.io/a11yviz/articles/r-reference.md)

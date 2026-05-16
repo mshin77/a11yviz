@@ -31,13 +31,14 @@ baseline against improved.
 
 ```{shinylive-r}
 #| standalone: true
-#| viewerHeight: 860
+#| viewerHeight: 1100
 #| components: [viewer]
 suppressPackageStartupMessages({
   library(shiny)
   library(bslib)
   library(ggplot2)
   library(palmerpenguins)
+  library(DT)
 })
 
 # inline a11yviz core ---------------------------------------------------------
@@ -136,14 +137,14 @@ a11y_audit <- function(p, level = "AA") {
 
 # app -------------------------------------------------------------------------
 penguins <- na.omit(penguins)
-shapes   <- c(16, 17, 15, 18)
+shapes   <- c(16, 17, 18, 15)
 
 panel_body <- function(plot_id, audit_id) {
   tagList(
     div(class = "plot-wrap",
         plotOutput(plot_id, height = "100%", width = "100%")),
     tags$h2("Audit", class = "h6 mt-3"),
-    div(class = "table-responsive", tableOutput(audit_id))
+    div(class = "table-responsive", DT::DTOutput(audit_id))
   )
 }
 
@@ -158,9 +159,9 @@ ui <- page_sidebar(
     .bslib-card { height: 100%; }
     .tab-content { display: flex; flex-direction: column; }
     .tab-pane.active { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; }
-    .plot-wrap { flex: 1 1 auto; min-height: 320px; height: clamp(320px, 55vh, 620px); }
+    .plot-wrap { flex: 1 1 auto; min-height: 420px; height: clamp(420px, 45vh, 540px); }
     .table-responsive { overflow-x: auto; }
-    table { width: 100%; }
+    table.dataTable { width: 100% !important; }
   "))),
   navset_card_underline(
     nav_panel("Baseline", panel_body("plot_before", "audit_before")),
@@ -179,7 +180,7 @@ server <- function(input, output) {
     n <- length(unique(penguins$species))
     p <- ggplot(penguins, aes(flipper_length_mm, body_mass_g,
                               color = species, shape = species)) +
-      geom_point() +
+      geom_point(size = 2.6, alpha = 0.85) +
       scale_color_a11y(level = input$level) +
       scale_shape_manual(values = shapes[seq_len(n)]) +
       theme_a11y(level = input$level) +
@@ -190,10 +191,19 @@ server <- function(input, output) {
   output$plot_before <- renderPlot(base_plot(),     res = 96)
   output$plot_after  <- renderPlot(improved_plot(), res = 96)
 
-  output$audit_before <- renderTable(a11y_audit(base_plot(),     level = input$level),
-                                     striped = TRUE, hover = TRUE, width = "100%")
-  output$audit_after  <- renderTable(a11y_audit(improved_plot(), level = input$level),
-                                     striped = TRUE, hover = TRUE, width = "100%")
+  audit_opts <- list(pageLength = 10, dom = "tip", scrollX = TRUE,
+                     columnDefs = list(list(className = "dt-left", targets = "_all")))
+
+  output$audit_before <- DT::renderDT(
+    a11y_audit(base_plot(), level = input$level),
+    options = audit_opts, rownames = FALSE,
+    class = "compact stripe hover", selection = "none"
+  )
+  output$audit_after  <- DT::renderDT(
+    a11y_audit(improved_plot(), level = input$level),
+    options = audit_opts, rownames = FALSE,
+    class = "compact stripe hover", selection = "none"
+  )
 }
 
 shinyApp(ui, server)

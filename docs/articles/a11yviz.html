@@ -157,8 +157,8 @@ where the chart needs human attention.</p>
 </tr>
 <tr class="odd">
 <td><code>applied</code></td>
-<td>handled by <code><a href="../reference/theme_a11y.html">theme_a11y()</a></code> /
-<code><a href="../reference/scale_a11y.html">scale_color_a11y()</a></code> / <code><a href="../reference/a11y_layout.html">a11y_layout()</a></code>
+<td>handled by <code><a href="../reference/theme_a11y.html">theme_a11y()</a></code> / <code>scale_*_a11y()</code> /
+<code><a href="../reference/a11y_layout.html">a11y_layout()</a></code>
 </td>
 </tr>
 <tr class="even">
@@ -185,8 +185,8 @@ separately</td>
 <div id="htmlwidget-ac96cb3ee4656e2e9ec3" style="width:100%;height:auto;" class="datatables html-widget"></div>
 <script type="application/json" data-for="htmlwidget-ac96cb3ee4656e2e9ec3">{"x":{"filter":"none","vertical":false,"extensions":["Buttons"],"data":[["1.1.1","1.4.1"],["Alt text on figure","Redundant group encoding"],["todo","todo"],["call a11y_alt_text() or a11y_alt_template()","add shape= or linetype= to redundantly encode the group"]],"container":"<table class=\"compact stripe hover\">\n  <thead>\n    <tr>\n      <th>criterion<\/th>\n      <th>check<\/th>\n      <th>status<\/th>\n      <th>note<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"dom":"Bfrtip","buttons":["copy","csv","excel","pdf"],"pageLength":10,"scrollX":true,"autoWidth":true,"columnDefs":[{"name":"criterion","targets":0},{"name":"check","targets":1},{"name":"status","targets":2},{"name":"note","targets":3}],"order":[],"orderClasses":false}},"evals":[],"jsHooks":[]}</script><p>Two actionable items come back as <code>todo</code>:</p>
 <ul>
-<li>WCAG 2.1: alt text missing</li>
-<li>WCAG 2.1: redundant group encoding (color only)</li>
+<li>WCAG 1.1.1: alt text missing</li>
+<li>WCAG 1.4.1: redundant group encoding (color only)</li>
 </ul>
 </div>
 <div class="section level2">
@@ -195,7 +195,8 @@ separately</td>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">p_a11y</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">penguins</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">flipper_length_mm</span>, <span class="va">body_mass_g</span>,</span>
 <span>                               color <span class="op">=</span> <span class="va">species</span>, shape <span class="op">=</span> <span class="va">species</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">2.6</span>, alpha <span class="op">=</span> <span class="fl">0.85</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_manual.html" class="external-link">scale_shape_manual</a></span><span class="op">(</span>values <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">16</span>, <span class="fl">17</span>, <span class="fl">18</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="../reference/theme_a11y.html">theme_a11y</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="../reference/scale_a11y.html">scale_color_a11y</a></span><span class="op">(</span><span class="st">"dark2_8"</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>x <span class="op">=</span> <span class="st">"Flipper length (mm)"</span>, y <span class="op">=</span> <span class="st">"Body mass (g)"</span><span class="op">)</span></span>
@@ -253,36 +254,6 @@ toggle between WCAG AA and AAA in the sidebar. Requires
 <code>shiny</code>, <code>bslib</code>, and <code>DT</code>.</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/run_app.html">run_app</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-</div>
-<div class="section level2">
-<h2 id="more-features">More features<a class="anchor" aria-label="anchor" href="#more-features"></a>
-</h2>
-<ul>
-<li>
-<strong>Palettes</strong> — <code><a href="../reference/a11y_palette_list.html">a11y_palette_list()</a></code>
-enumerates discrete, diverging, and sequential palettes with WCAG
-metadata. <code><a href="../reference/a11y_palette.html">a11y_palette()</a></code>, <code><a href="../reference/a11y_palette_div.html">a11y_palette_div()</a></code>,
-<code><a href="../reference/a11y_palette_seq.html">a11y_palette_seq()</a></code> resolve hex codes;
-<code>scale_*_a11y_*()</code> apply them in ggplot.</li>
-<li>
-<strong>Plotly</strong> — <code><a href="../reference/a11y_layout.html">a11y_layout()</a></code> applies
-accessible chrome, fonts, and colorway. <code><a href="../reference/a11y_ggplotly.html">a11y_ggplotly()</a></code>
-converts a ggplot to plotly with alt text preserved.</li>
-<li>
-<strong>Document-level checks</strong> —
-<code><a href="../reference/a11y_check_headings.html">a11y_check_headings()</a></code> and
-<code><a href="../reference/a11y_check_readability.html">a11y_check_readability()</a></code> flag heading-skip and
-reading-level issues in <code>.qmd</code> / <code>.Rmd</code> /
-<code>.md</code> files.</li>
-<li>
-<strong>Live-region announcements</strong> —
-<code><a href="../reference/a11y_announce.html">a11y_announce()</a></code> wraps a status message in a live region for
-screen-reader-only announcement.</li>
-<li>
-<strong>Alpha guidance</strong> — <code><a href="../reference/a11y_alpha_presets.html">a11y_alpha_presets()</a></code>
-returns sensible alpha values for overlay layers; verify composited
-contrast with <code>a11y_check_palette(alpha = ...)</code>.</li>
-</ul>
 <p>See the <a href="r-reference.html">function reference</a> for the
 full API.</p>
 </div>
