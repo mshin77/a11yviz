@@ -6,12 +6,15 @@ contrast and font thresholds shift; the audit table reports
 per-criterion status for each version. Switch tabs to compare baseline
 against improved.
 
+## Live demo
+
 ``` shinylive-r
 #| '!! shinylive warning !!': |
 #|   shinylive does not work in self-contained HTML documents.
 #|   Please set `embed-resources: false` in your metadata.
 #| standalone: true
-#| viewerHeight: 720
+#| viewerHeight: 860
+#| components: [viewer]
 suppressPackageStartupMessages({
   library(shiny)
   library(bslib)
@@ -117,23 +120,33 @@ a11y_audit <- function(p, level = "AA") {
 penguins <- na.omit(penguins)
 shapes   <- c(16, 17, 15, 18)
 
+panel_body <- function(plot_id, audit_id) {
+  tagList(
+    div(class = "plot-wrap",
+        plotOutput(plot_id, height = "100%", width = "100%")),
+    tags$h2("Audit", class = "h6 mt-3"),
+    div(class = "table-responsive", tableOutput(audit_id))
+  )
+}
+
 ui <- page_sidebar(
   fillable = TRUE,
-  sidebar  = sidebar(width = 220,
+  sidebar  = sidebar(width = 240,
     radioButtons("level", "WCAG level:",
                  choices = c("AA", "AAA"), selected = "AA", inline = TRUE)
   ),
+  tags$head(tags$style(HTML("
+    html, body { height: 100%; }
+    .bslib-card { height: 100%; }
+    .tab-content { display: flex; flex-direction: column; }
+    .tab-pane.active { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; }
+    .plot-wrap { flex: 1 1 auto; min-height: 320px; height: clamp(320px, 55vh, 620px); }
+    .table-responsive { overflow-x: auto; }
+    table { width: 100%; }
+  "))),
   navset_card_underline(
-    nav_panel("Baseline",
-      plotOutput("plot_before", height = 320),
-      tags$h3("Audit", class = "h6 mt-3"),
-      tableOutput("audit_before")
-    ),
-    nav_panel("Improved",
-      plotOutput("plot_after", height = 320),
-      tags$h3("Audit", class = "h6 mt-3"),
-      tableOutput("audit_after")
-    )
+    nav_panel("Baseline", panel_body("plot_before", "audit_before")),
+    nav_panel("Improved", panel_body("plot_after",  "audit_after"))
   )
 )
 
@@ -156,8 +169,8 @@ server <- function(input, output) {
     a11y_alt_text(p, "Penguin body mass vs flipper length by species, AA accessible.")
   })
 
-  output$plot_before <- renderPlot(base_plot(),     height = 320, res = 96)
-  output$plot_after  <- renderPlot(improved_plot(), height = 320, res = 96)
+  output$plot_before <- renderPlot(base_plot(),     res = 96)
+  output$plot_after  <- renderPlot(improved_plot(), res = 96)
 
   output$audit_before <- renderTable(a11y_audit(base_plot(),     level = input$level),
                                      striped = TRUE, hover = TRUE, width = "100%")

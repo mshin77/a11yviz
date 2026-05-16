@@ -100,11 +100,15 @@
 
     <meta name="shinylive:serviceworker_dir" content=".">
 <script>document.documentElement.classList.add("playground-page");</script><p>The same chart rendered with ggplot defaults versus the package’s accessible theme, palette, and alt text. Toggle the WCAG level to see contrast and font thresholds shift; the audit table reports per-criterion status for each version. Switch tabs to compare baseline against improved.</p>
+<section class="level2 unnumbered"><h2 class="unnumbered" id="live-demo">Live demo<a class="anchor" aria-label="anchor" href="#live-demo"></a>
+</h2>
+<div role="region" aria-label="Interactive R Shiny demo: baseline vs accessible ggplot, with per-criterion WCAG audit">
 <pre class="shinylive-r" data-engine="r"><code><span><span class="co">#| '!! shinylive warning !!': |</span></span>
 <span><span class="co">#|   shinylive does not work in self-contained HTML documents.</span></span>
 <span><span class="co">#|   Please set `embed-resources: false` in your metadata.</span></span>
 <span><span class="co">#| standalone: true</span></span>
-<span><span class="co">#| viewerHeight: 720</span></span>
+<span><span class="co">#| viewerHeight: 860</span></span>
+<span><span class="co">#| components: [viewer]</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">suppressPackageStartupMessages</a></span><span class="op">(</span><span class="op">{</span></span>
 <span>  <span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://shiny.posit.co/" class="external-link">shiny</a></span><span class="op">)</span></span>
 <span>  <span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://rstudio.github.io/bslib/" class="external-link">bslib</a></span><span class="op">)</span></span>
@@ -210,23 +214,33 @@
 <span><span class="va">penguins</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/na.fail.html" class="external-link">na.omit</a></span><span class="op">(</span><span class="va">penguins</span><span class="op">)</span></span>
 <span><span class="va">shapes</span>   <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">16</span>, <span class="fl">17</span>, <span class="fl">15</span>, <span class="fl">18</span><span class="op">)</span></span>
 <span></span>
+<span><span class="va">panel_body</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">plot_id</span>, <span class="va">audit_id</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="fu"><a href="https://rstudio.github.io/htmltools/reference/tagList.html" class="external-link">tagList</a></span><span class="op">(</span></span>
+<span>    <span class="fu"><a href="https://rstudio.github.io/htmltools/reference/builder.html" class="external-link">div</a></span><span class="op">(</span>class <span class="op">=</span> <span class="st">"plot-wrap"</span>,</span>
+<span>        <span class="fu"><a href="https://rdrr.io/pkg/shiny/man/plotOutput.html" class="external-link">plotOutput</a></span><span class="op">(</span><span class="va">plot_id</span>, height <span class="op">=</span> <span class="st">"100%"</span>, width <span class="op">=</span> <span class="st">"100%"</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>    <span class="va">tags</span><span class="op">$</span><span class="fu">h2</span><span class="op">(</span><span class="st">"Audit"</span>, class <span class="op">=</span> <span class="st">"h6 mt-3"</span><span class="op">)</span>,</span>
+<span>    <span class="fu"><a href="https://rstudio.github.io/htmltools/reference/builder.html" class="external-link">div</a></span><span class="op">(</span>class <span class="op">=</span> <span class="st">"table-responsive"</span>, <span class="fu"><a href="https://rdrr.io/pkg/shiny/man/renderTable.html" class="external-link">tableOutput</a></span><span class="op">(</span><span class="va">audit_id</span><span class="op">)</span><span class="op">)</span></span>
+<span>  <span class="op">)</span></span>
+<span><span class="op">}</span></span>
+<span></span>
 <span><span class="va">ui</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rstudio.github.io/bslib/reference/page_sidebar.html" class="external-link">page_sidebar</a></span><span class="op">(</span></span>
 <span>  fillable <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  sidebar  <span class="op">=</span> <span class="fu"><a href="https://rstudio.github.io/bslib/reference/sidebar.html" class="external-link">sidebar</a></span><span class="op">(</span>width <span class="op">=</span> <span class="fl">220</span>,</span>
+<span>  sidebar  <span class="op">=</span> <span class="fu"><a href="https://rstudio.github.io/bslib/reference/sidebar.html" class="external-link">sidebar</a></span><span class="op">(</span>width <span class="op">=</span> <span class="fl">240</span>,</span>
 <span>    <span class="fu"><a href="https://rdrr.io/pkg/shiny/man/radioButtons.html" class="external-link">radioButtons</a></span><span class="op">(</span><span class="st">"level"</span>, <span class="st">"WCAG level:"</span>,</span>
 <span>                 choices <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"AA"</span>, <span class="st">"AAA"</span><span class="op">)</span>, selected <span class="op">=</span> <span class="st">"AA"</span>, inline <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span>  <span class="op">)</span>,</span>
+<span>  <span class="va">tags</span><span class="op">$</span><span class="fu">head</span><span class="op">(</span><span class="va">tags</span><span class="op">$</span><span class="fu">style</span><span class="op">(</span><span class="fu"><a href="https://rstudio.github.io/htmltools/reference/HTML.html" class="external-link">HTML</a></span><span class="op">(</span><span class="st">"</span></span>
+<span><span class="st">    html, body { height: 100%; }</span></span>
+<span><span class="st">    .bslib-card { height: 100%; }</span></span>
+<span><span class="st">    .tab-content { display: flex; flex-direction: column; }</span></span>
+<span><span class="st">    .tab-pane.active { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; }</span></span>
+<span><span class="st">    .plot-wrap { flex: 1 1 auto; min-height: 320px; height: clamp(320px, 55vh, 620px); }</span></span>
+<span><span class="st">    .table-responsive { overflow-x: auto; }</span></span>
+<span><span class="st">    table { width: 100%; }</span></span>
+<span><span class="st">  "</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>  <span class="fu"><a href="https://rstudio.github.io/bslib/reference/navset.html" class="external-link">navset_card_underline</a></span><span class="op">(</span></span>
-<span>    <span class="fu"><a href="https://rstudio.github.io/bslib/reference/nav-items.html" class="external-link">nav_panel</a></span><span class="op">(</span><span class="st">"Baseline"</span>,</span>
-<span>      <span class="fu"><a href="https://rdrr.io/pkg/shiny/man/plotOutput.html" class="external-link">plotOutput</a></span><span class="op">(</span><span class="st">"plot_before"</span>, height <span class="op">=</span> <span class="fl">320</span><span class="op">)</span>,</span>
-<span>      <span class="va">tags</span><span class="op">$</span><span class="fu">h3</span><span class="op">(</span><span class="st">"Audit"</span>, class <span class="op">=</span> <span class="st">"h6 mt-3"</span><span class="op">)</span>,</span>
-<span>      <span class="fu"><a href="https://rdrr.io/pkg/shiny/man/renderTable.html" class="external-link">tableOutput</a></span><span class="op">(</span><span class="st">"audit_before"</span><span class="op">)</span></span>
-<span>    <span class="op">)</span>,</span>
-<span>    <span class="fu"><a href="https://rstudio.github.io/bslib/reference/nav-items.html" class="external-link">nav_panel</a></span><span class="op">(</span><span class="st">"Improved"</span>,</span>
-<span>      <span class="fu"><a href="https://rdrr.io/pkg/shiny/man/plotOutput.html" class="external-link">plotOutput</a></span><span class="op">(</span><span class="st">"plot_after"</span>, height <span class="op">=</span> <span class="fl">320</span><span class="op">)</span>,</span>
-<span>      <span class="va">tags</span><span class="op">$</span><span class="fu">h3</span><span class="op">(</span><span class="st">"Audit"</span>, class <span class="op">=</span> <span class="st">"h6 mt-3"</span><span class="op">)</span>,</span>
-<span>      <span class="fu"><a href="https://rdrr.io/pkg/shiny/man/renderTable.html" class="external-link">tableOutput</a></span><span class="op">(</span><span class="st">"audit_after"</span><span class="op">)</span></span>
-<span>    <span class="op">)</span></span>
+<span>    <span class="fu"><a href="https://rstudio.github.io/bslib/reference/nav-items.html" class="external-link">nav_panel</a></span><span class="op">(</span><span class="st">"Baseline"</span>, <span class="fu">panel_body</span><span class="op">(</span><span class="st">"plot_before"</span>, <span class="st">"audit_before"</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>    <span class="fu"><a href="https://rstudio.github.io/bslib/reference/nav-items.html" class="external-link">nav_panel</a></span><span class="op">(</span><span class="st">"Improved"</span>, <span class="fu">panel_body</span><span class="op">(</span><span class="st">"plot_after"</span>,  <span class="st">"audit_after"</span><span class="op">)</span><span class="op">)</span></span>
 <span>  <span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span></span>
@@ -249,8 +263,8 @@
 <span>    <span class="fu"><a href="../reference/a11y_alt_text.html">a11y_alt_text</a></span><span class="op">(</span><span class="va">p</span>, <span class="st">"Penguin body mass vs flipper length by species, AA accessible."</span><span class="op">)</span></span>
 <span>  <span class="op">}</span><span class="op">)</span></span>
 <span></span>
-<span>  <span class="va">output</span><span class="op">$</span><span class="va">plot_before</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/shiny/man/renderPlot.html" class="external-link">renderPlot</a></span><span class="op">(</span><span class="fu">base_plot</span><span class="op">(</span><span class="op">)</span>,     height <span class="op">=</span> <span class="fl">320</span>, res <span class="op">=</span> <span class="fl">96</span><span class="op">)</span></span>
-<span>  <span class="va">output</span><span class="op">$</span><span class="va">plot_after</span>  <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/shiny/man/renderPlot.html" class="external-link">renderPlot</a></span><span class="op">(</span><span class="fu">improved_plot</span><span class="op">(</span><span class="op">)</span>, height <span class="op">=</span> <span class="fl">320</span>, res <span class="op">=</span> <span class="fl">96</span><span class="op">)</span></span>
+<span>  <span class="va">output</span><span class="op">$</span><span class="va">plot_before</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/shiny/man/renderPlot.html" class="external-link">renderPlot</a></span><span class="op">(</span><span class="fu">base_plot</span><span class="op">(</span><span class="op">)</span>,     res <span class="op">=</span> <span class="fl">96</span><span class="op">)</span></span>
+<span>  <span class="va">output</span><span class="op">$</span><span class="va">plot_after</span>  <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/shiny/man/renderPlot.html" class="external-link">renderPlot</a></span><span class="op">(</span><span class="fu">improved_plot</span><span class="op">(</span><span class="op">)</span>, res <span class="op">=</span> <span class="fl">96</span><span class="op">)</span></span>
 <span></span>
 <span>  <span class="va">output</span><span class="op">$</span><span class="va">audit_before</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/shiny/man/renderTable.html" class="external-link">renderTable</a></span><span class="op">(</span><span class="fu"><a href="../reference/a11y_audit.html">a11y_audit</a></span><span class="op">(</span><span class="fu">base_plot</span><span class="op">(</span><span class="op">)</span>,     level <span class="op">=</span> <span class="va">input</span><span class="op">$</span><span class="va">level</span><span class="op">)</span>,</span>
 <span>                                     striped <span class="op">=</span> <span class="cn">TRUE</span>, hover <span class="op">=</span> <span class="cn">TRUE</span>, width <span class="op">=</span> <span class="st">"100%"</span><span class="op">)</span></span>
@@ -259,10 +273,8 @@
 <span><span class="op">}</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/shiny/man/shinyApp.html" class="external-link">shinyApp</a></span><span class="op">(</span><span class="va">ui</span>, <span class="va">server</span><span class="op">)</span></span></code></pre>
-
-
-
-<script id="quarto-html-after-body" type="application/javascript">
+</div>
+</section><script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {
       var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
       var mailtoRegex = new RegExp(/^mailto:/);

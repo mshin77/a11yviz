@@ -27,9 +27,8 @@ Character path (default) or character vector of paths (shiny).
 ## Examples
 
 ``` r
-a11y_css()
-#> [1] "redacted"
-a11y_css("shiny")
-#> [1] "redacted"      
-#> [2] "redacted"
+basename(a11y_css())
+#> [1] "a11yviz.css"
+length(a11y_css("shiny"))
+#> [1] 2
 ```
