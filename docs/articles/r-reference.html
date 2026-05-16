@@ -29,7 +29,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">a11yviz</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.1.3</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.1.4</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -240,7 +240,23 @@
 <tbody>
 <tr class="odd">
 <td><code>a11y_audit(p, level = "AA")</code></td>
-<td>Audit a plot against accessibility standards</td>
+<td>Chart + document accessibility audit</td>
+</tr>
+<tr class="even">
+<td><code>a11y_audit_chart(p, level = "AA")</code></td>
+<td>Chart-only accessibility audit</td>
+</tr>
+<tr class="odd">
+<td><code>a11y_audit_doc(level = "AA")</code></td>
+<td>Document-level accessibility audit</td>
+</tr>
+<tr class="even">
+<td><code>a11y_audit_actionable(audit)</code></td>
+<td>Actionable rows from an audit</td>
+</tr>
+<tr class="odd">
+<td><code>a11y_audit_summary(audit)</code></td>
+<td>One-line summary of an audit</td>
 </tr>
 <tr class="even">
 <td><code>a11y_rubric(level = NULL)</code></td>

@@ -2,7 +2,7 @@
 % Please edit documentation in R/a11y_audit.R
 \name{a11y_audit}
 \alias{a11y_audit}
-\title{Audit a plot against accessibility standards}
+\title{Chart + document accessibility audit}
 \usage{
 a11y_audit(p, level = "AA")
 }
@@ -13,12 +13,9 @@ a11y_audit(p, level = "AA")
 }
 \value{
 Data frame with columns \code{criterion}, \code{check}, \code{status}, \code{note}.
-Pass any \code{criterion} value to \code{\link[=a11y_wcag_url]{a11y_wcag_url()}} for the spec link, or
-join to \code{\link[=a11y_rubric]{a11y_rubric()}} for principle, guideline, and threshold.
+Join to \code{\link[=a11y_rubric]{a11y_rubric()}} for principle, guideline, and threshold.
 }
 \description{
-Returns a tibble of accessibility checks, with a status per check.
-Anchored to W3C WCAG 2.1. Each row carries a \code{criterion}
-(success-criterion) number so the result joins cleanly to
-\code{\link[=a11y_rubric]{a11y_rubric()}}.
+Union of \code{\link[=a11y_audit_chart]{a11y_audit_chart()}} and \code{\link[=a11y_audit_doc]{a11y_audit_doc()}}. Prefer the split
+functions when one scope is enough.
 }

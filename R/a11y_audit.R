@@ -1,17 +1,14 @@
-#' Audit a plot against accessibility standards
+#' Chart-only accessibility audit
 #'
-#' Returns a tibble of accessibility checks, with a status per check.
-#' Anchored to W3C WCAG 2.1. Each row carries a `criterion`
-#' (success-criterion) number so the result joins cleanly to
-#' [a11y_rubric()].
+#' Returns the chart-relevant rows from the WCAG 2.1 audit: alt text,
+#' redundant group encoding, text contrast, text size, non-text contrast,
+#' hover/focus, and (at AAA) enhanced text contrast.
 #'
 #' @param p A `plotly` or `ggplot` object.
 #' @param level `"AA"` or `"AAA"`.
 #' @return Data frame with columns `criterion`, `check`, `status`, `note`.
-#'   Pass any `criterion` value to [a11y_wcag_url()] for the spec link, or
-#'   join to [a11y_rubric()] for principle, guideline, and threshold.
 #' @export
-a11y_audit <- function(p, level = "AA") {
+a11y_audit_chart <- function(p, level = "AA") {
   level    <- .check_level(level)
   alt_text <- attr(p, "a11y_alt") %||% attr(p, "alt")
   has_alt  <- !is.null(alt_text) && nzchar(alt_text)
@@ -32,30 +29,85 @@ a11y_audit <- function(p, level = "AA") {
   rows <- list(
     .row("1.1.1",  "Alt text on figure",
          alt$status, alt$note),
-    .row("1.3.1",  "Heading hierarchy",
-         "doc",    "run a11y_check_headings() on the host document"),
     .row("1.4.1",  "Redundant group encoding",
          color$status, color$note),
     .row("1.4.3",  "Text contrast (Min)",
          applied,  "theme_a11y() / a11y_layout() set 4.5:1 text on 3:1 non-text"),
     .row("1.4.4",  sprintf("Recommended text size (%s default)", level),
          text$status, text$note),
-    .row("1.4.4",  "Text resizable",
-         applied,  "fonts set in pt; layout scales with container"),
-    .row("1.4.10", "Reflow at 320 CSS px",
-         "manual", "verify the host page reflows at 320 px without 2D scroll; a11y_css() ships @media rules"),
     .row("1.4.11", "Non-text contrast",
          applied,  "axis lines, gridlines, error bars styled"),
-    .row("1.4.12", "Body text spacing",
-         "css",    "include a11y_css() for line-height and paragraph spacing"),
     .row("1.4.13", "Content on hover or focus",
-         hover$status, hover$note),
-    .row("2.4.7",  "Visible keyboard focus",
-         "css",    "include a11y_css() for keyboard focus rings")
+         hover$status, hover$note)
   )
   aaa <- list(.row("1.4.6", "Enhanced text contrast (AAA)",
                    applied, "AAA contrast ratios applied"))
   do.call(rbind, c(rows, aaa[level == "AAA"]))
+}
+
+#' Document-level accessibility audit
+#'
+#' Returns the host-page rows from the WCAG 2.1 audit: heading hierarchy,
+#' text resizing, reflow, body text spacing, and visible keyboard focus.
+#'
+#' @param level `"AA"` or `"AAA"`. Doc-level rows are identical for both.
+#' @return Data frame with columns `criterion`, `check`, `status`, `note`.
+#' @export
+a11y_audit_doc <- function(level = "AA") {
+  .check_level(level)
+  rows <- list(
+    .row("1.3.1",  "Heading hierarchy",
+         "doc",     "run a11y_check_headings() on the host document"),
+    .row("1.4.4",  "Text resizable",
+         "applied", "fonts set in pt; layout scales with container"),
+    .row("1.4.10", "Reflow at 320 CSS px",
+         "manual",  "verify the host page reflows at 320 px without 2D scroll; a11y_css() ships @media rules"),
+    .row("1.4.12", "Body text spacing",
+         "css",     "include a11y_css() for line-height and paragraph spacing"),
+    .row("2.4.7",  "Visible keyboard focus",
+         "css",     "include a11y_css() for keyboard focus rings")
+  )
+  do.call(rbind, rows)
+}
+
+#' Chart + document accessibility audit
+#'
+#' Union of [a11y_audit_chart()] and [a11y_audit_doc()]. Prefer the split
+#' functions when one scope is enough.
+#'
+#' @inheritParams a11y_audit_chart
+#' @return Data frame with columns `criterion`, `check`, `status`, `note`.
+#'   Join to [a11y_rubric()] for principle, guideline, and threshold.
+#' @export
+a11y_audit <- function(p, level = "AA") {
+  rbind(a11y_audit_chart(p, level), a11y_audit_doc(level))
+}
+
+#' Actionable rows from an audit
+#'
+#' Filters an audit data frame to rows with status `todo` or `ok` -- the
+#' decisions a chart author has to make. Drops rows handled by helpers,
+#' rows that belong to the host document, and rows marked `manual` / `n/a`.
+#'
+#' @param audit Output of [a11y_audit()], [a11y_audit_chart()], or [a11y_audit_doc()].
+#' @return Data frame with the same columns as `audit`, filtered.
+#' @export
+a11y_audit_actionable <- function(audit) {
+  audit[audit$status %in% c("todo", "ok"), , drop = FALSE]
+}
+
+#' One-line summary of an audit
+#'
+#' Returns a sentence counting how many checks need a decision, how many
+#' pass, and how many are already handled.
+#'
+#' @param audit Output of [a11y_audit()], [a11y_audit_chart()], or [a11y_audit_doc()].
+#' @return Length-1 character vector.
+#' @export
+a11y_audit_summary <- function(audit) {
+  todo <- sum(audit$status == "todo")
+  ok   <- sum(audit$status == "ok")
+  sprintf("%d to do, %d ok, %d already handled.", todo, ok, nrow(audit) - todo - ok)
 }
 
 .row <- function(criterion, check, status, note) {

@@ -12,7 +12,7 @@ vignette: >
 import a11yviz
 import pandas as pd
 from itables import show
-from plotnine import aes, geom_point, ggplot, labs, scale_shape_manual
+from plotnine import aes, geom_point, ggplot, labs, theme
 from plotnine.data import penguins
 
 penguins = penguins.dropna()
@@ -58,7 +58,9 @@ The table below filters to **actionable** rows (`status = "todo"` or `"ok"`)
 
 ```{python}
 #| label: audit-example
-show(pd.DataFrame([r for r in a11yviz.a11y_audit(p) if r["status"] in ("todo", "ok")]),
+audit_p = a11yviz.a11y_audit_chart(p)
+print(a11yviz.a11y_audit_summary(audit_p))
+show(pd.DataFrame(a11yviz.a11y_audit_actionable(audit_p)),
      table_id="audit-example", **dt_options)
 ```
 
@@ -74,13 +76,12 @@ Two actionable items come back as `todo`:
 #| fig-width: 6
 #| fig-height: 4
 p2 = (
-    ggplot(penguins, aes("flipper_length_mm", "body_mass_g",
-                         color="species", shape="species"))
-    + geom_point(size=2.6, alpha=0.85)
-    + scale_shape_manual(values=["o", "^", "D"])
-    + a11yviz.theme_a11y(base_family="DejaVu Sans")
+    ggplot(penguins, aes("flipper_length_mm", "body_mass_g", color="species"))
+    + geom_point(size=2, alpha=0.75)
+    + a11yviz.theme_a11y()
     + a11yviz.scale_color_a11y(palette="dark2_8")
-    + labs(x="Flipper length (mm)", y="Body mass (g)")
+    + labs(x="Flipper length (mm)", y="Body mass (g)", color="Species")
+    + theme(legend_position="top")
 )
 p2 = a11yviz.a11y_alt_text(
     p2,
@@ -90,22 +91,26 @@ p2 = a11yviz.a11y_alt_text(
 p2
 ```
 
-Four accessibility wins from a few extra lines: `shape="species"` encodes group
-via marker shape (Success Criterion 1.4.1), `scale_color_a11y("dark2_8")` swaps
-in WCAG-tagged colors that clear 3:1 on white (Success Criterion 1.4.11),
+Three accessibility wins from a few extra lines: `scale_color_a11y("dark2_8")`
+swaps in WCAG-tagged colors that clear 3:1 on white (Success Criterion 1.4.11),
 `theme_a11y()` applies the recommended font sizes and axis styling (Success
 Criterion 1.4.4), and `a11y_alt_text()` attaches the screen-reader description
-(Success Criterion 1.1.1).
+(Success Criterion 1.1.1). Color is still the only group cue, so the audit
+honestly flags 1.4.1 as `todo` — when shape variety would hurt readability,
+add direct cluster labels or facet by species to clear it.
 
 ## Audit again
 
 ```{python}
 #| label: audit-improved
-show(pd.DataFrame([r for r in a11yviz.a11y_audit(p2) if r["status"] in ("todo", "ok")]),
+audit_a = a11yviz.a11y_audit_chart(p2)
+print(a11yviz.a11y_audit_summary(audit_a))
+show(pd.DataFrame(a11yviz.a11y_audit_actionable(audit_a)),
      table_id="audit-improved", **dt_options)
 ```
 
-All actionable checks come back as `ok`.
+Alt text and text-size checks come back as `ok`; 1.4.1 stays `todo` by design
+(see the note above).
 
 ## WCAG rubric
 

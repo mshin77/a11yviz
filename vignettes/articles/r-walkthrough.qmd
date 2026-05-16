@@ -25,14 +25,19 @@ contrast and font thresholds shift; the audit table reports
 per-criterion status for each version. Switch tabs to compare
 baseline against improved.
 
+Edit the code on the left to swap in a different dataset, change
+aesthetics, or tweak the theme — the chart and audit update on the
+right. To load a CSV, paste it into a `read.csv(text = "...")` call,
+or replace `penguins` with any data frame already in scope.
+
 ## Live demo {.unnumbered}
 
 ::: {role="region" aria-label="Interactive R Shiny demo: baseline vs accessible ggplot, with per-criterion WCAG audit"}
 
 ```{shinylive-r}
 #| standalone: true
-#| viewerHeight: 1100
-#| components: [viewer]
+#| viewerHeight: 1200
+#| components: [editor, viewer]
 suppressPackageStartupMessages({
   library(shiny)
   library(bslib)
@@ -81,11 +86,19 @@ a11y_alt_text <- function(p, text) {
   p
 }
 
-a11y_audit <- function(p, level = "AA") {
+a11y_audit_actionable <- function(audit)
+  audit[audit$status %in% c("todo", "ok"), , drop = FALSE]
+
+a11y_audit_summary <- function(audit) {
+  todo <- sum(audit$status == "todo")
+  ok   <- sum(audit$status == "ok")
+  sprintf("%d to do, %d ok, %d already handled.", todo, ok, nrow(audit) - todo - ok)
+}
+
+a11y_audit_chart <- function(p, level = "AA") {
   alt_text  <- attr(p, "a11y_alt") %||% attr(p, "alt")
   has_alt   <- !is.null(alt_text) && nzchar(alt_text)
-  is_chart  <- inherits(p, "ggplot")
-  applied   <- if (is_chart) "applied" else "unknown"
+  applied   <- if (inherits(p, "ggplot")) "applied" else "unknown"
   threshold <- if (level == "AAA") 14 else 12
   base_size <- p$theme$text$size
   text_ok   <- is.numeric(base_size) && base_size >= threshold
@@ -97,32 +110,25 @@ a11y_audit <- function(p, level = "AA") {
                   else if (has_redundant) "shape or linetype redundantly encodes group"
                   else "add shape= or linetype= to redundantly encode the group"
   rows <- data.frame(
-    criterion = c("1.1.1","1.3.1","1.4.1","1.4.3","1.4.4","1.4.4",
-                  "1.4.10","1.4.11","1.4.12","1.4.13","2.4.7"),
-    check = c("Alt text on figure","Heading hierarchy","Redundant group encoding",
+    criterion = c("1.1.1", "1.4.1", "1.4.3", "1.4.4", "1.4.11", "1.4.13"),
+    check = c("Alt text on figure", "Redundant group encoding",
               "Text contrast (Min)",
               sprintf("Recommended text size (%s default)", level),
-              "Text resizable","Reflow at 320 CSS px","Non-text contrast",
-              "Body text spacing","Content on hover or focus","Visible keyboard focus"),
+              "Non-text contrast", "Content on hover or focus"),
     status = c(if (has_alt) "partial" else "todo",
-               "doc", color_status, applied,
+               color_status, applied,
                if (is.numeric(base_size)) (if (text_ok) "ok" else "todo") else "manual",
-               applied, "manual", applied, "css", "n/a", "css"),
+               applied, "n/a"),
     note = c(if (has_alt) "alt stored on figure; emit via the renderer's <img alt>"
              else "call a11y_alt_text() or a11y_alt_template()",
-             "run a11y_check_headings() on the host document",
              color_note,
              "theme_a11y() / a11y_layout() set 4.5:1 text on 3:1 non-text",
              if (is.numeric(base_size))
                (if (text_ok) sprintf("base size %g pt (min %g pt)", base_size, threshold)
                 else sprintf("base size %g pt; bump to >= %g pt", base_size, threshold))
              else sprintf("verify text size manually (min %g pt for %s)", threshold, level),
-             "fonts set in pt; layout scales with container",
-             "verify the host page reflows at 320 px without 2D scroll",
              "axis lines, gridlines, error bars styled",
-             "include a11y_css() for line-height and paragraph spacing",
-             "ggplot output has no interactive hover tooltips",
-             "include a11y_css() for keyboard focus rings"),
+             "ggplot output has no interactive hover tooltips"),
     stringsAsFactors = FALSE
   )
   if (level == "AAA")
@@ -159,9 +165,16 @@ ui <- page_sidebar(
     .bslib-card { height: 100%; }
     .tab-content { display: flex; flex-direction: column; }
     .tab-pane.active { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; }
-    .plot-wrap { flex: 1 1 auto; min-height: 420px; height: clamp(420px, 45vh, 540px); }
+    .plot-wrap { flex: 1 1 auto; min-height: 320px; height: clamp(320px, 45vh, 540px); }
     .table-responsive { overflow-x: auto; }
     table.dataTable { width: 100% !important; }
+    @media (max-width: 768px) {
+      .plot-wrap { min-height: 280px; height: clamp(280px, 40vh, 440px); }
+    }
+    @media (max-width: 576px) {
+      .plot-wrap { min-height: 240px; height: clamp(240px, 35vh, 360px); }
+      table.dataTable td, table.dataTable th { padding: 4px 6px; font-size: 0.85rem; }
+    }
   "))),
   navset_card_underline(
     nav_panel("Baseline", panel_body("plot_before", "audit_before")),
@@ -177,14 +190,13 @@ server <- function(input, output) {
   })
 
   improved_plot <- reactive({
-    n <- length(unique(penguins$species))
-    p <- ggplot(penguins, aes(flipper_length_mm, body_mass_g,
-                              color = species, shape = species)) +
-      geom_point(size = 2.6, alpha = 0.85) +
+    p <- ggplot(penguins, aes(flipper_length_mm, body_mass_g, color = species)) +
+      geom_point(size = 2, alpha = 0.75) +
       scale_color_a11y(level = input$level) +
-      scale_shape_manual(values = shapes[seq_len(n)]) +
       theme_a11y(level = input$level) +
-      labs(title = "Penguins (theme_a11y + scale_color_a11y + shape)")
+      labs(title = "Penguins (theme_a11y + scale_color_a11y)",
+           x = "Flipper length (mm)", y = "Body mass (g)", color = "Species") +
+      theme(legend.position = "top")
     a11y_alt_text(p, "Penguin body mass vs flipper length by species, AA accessible.")
   })
 
@@ -195,12 +207,12 @@ server <- function(input, output) {
                      columnDefs = list(list(className = "dt-left", targets = "_all")))
 
   output$audit_before <- DT::renderDT(
-    a11y_audit(base_plot(), level = input$level),
+    a11y_audit_actionable(a11y_audit_chart(base_plot(),     level = input$level)),
     options = audit_opts, rownames = FALSE,
     class = "compact stripe hover", selection = "none"
   )
   output$audit_after  <- DT::renderDT(
-    a11y_audit(improved_plot(), level = input$level),
+    a11y_audit_actionable(a11y_audit_chart(improved_plot(), level = input$level)),
     options = audit_opts, rownames = FALSE,
     class = "compact stripe hover", selection = "none"
   )

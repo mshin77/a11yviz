@@ -42,12 +42,13 @@ server <- function(input, output) {
   })
 
   improved_plot <- reactive({
-    p <- ggplot(penguins, aes(flipper_length_mm, body_mass_g,
-                              color = species, shape = species)) +
-      geom_point() +
+    p <- ggplot(penguins, aes(flipper_length_mm, body_mass_g, color = species)) +
+      geom_point(size = 2, alpha = 0.75) +
       theme_a11y(level = input$level) +
       scale_color_a11y(level = input$level) +
-      labs(title = "Penguins (theme_a11y + scale_color_a11y)")
+      labs(title = "Penguins (theme_a11y + scale_color_a11y)",
+           x = "Flipper length (mm)", y = "Body mass (g)", color = "Species") +
+      theme(legend.position = "top")
     a11y_alt_text(p, "Penguin body mass vs flipper length by species, AA accessible.")
   })
 
@@ -55,12 +56,12 @@ server <- function(input, output) {
   output$plot_after  <- renderPlot(improved_plot())
 
   output$audit_before <- DT::renderDT(
-    DT::datatable(a11y_audit(base_plot(), level = input$level),
+    DT::datatable(a11y_audit_actionable(a11y_audit_chart(base_plot(),     level = input$level)),
                   extensions = "Buttons", options = dt_options,
                   class = "compact stripe hover", rownames = FALSE)
   )
   output$audit_after <- DT::renderDT(
-    DT::datatable(a11y_audit(improved_plot(), level = input$level),
+    DT::datatable(a11y_audit_actionable(a11y_audit_chart(improved_plot(), level = input$level)),
                   extensions = "Buttons", options = dt_options,
                   class = "compact stripe hover", rownames = FALSE)
   )

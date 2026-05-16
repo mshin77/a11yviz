@@ -56,7 +56,9 @@ The table below filters to **actionable** rows (`status = "todo"` or `"ok"`)
 | `n/a`    | not applicable to this chart type (e.g., hover on ggplot)            |
 
 ```{r audit-example, eval = requireNamespace("DT", quietly = TRUE)}
-dt_show(subset(a11y_audit(p), status %in% c("todo", "ok")))
+audit_p <- a11y_audit_chart(p)
+cat(a11y_audit_summary(audit_p))
+dt_show(a11y_audit_actionable(audit_p))
 ```
 
 Two actionable items come back as `todo`:
@@ -67,32 +69,35 @@ Two actionable items come back as `todo`:
 ## Improved
 
 ```{r improved, fig.width = 6, fig.height = 4}
-p_a11y <- ggplot(penguins, aes(flipper_length_mm, body_mass_g,
-                               color = species, shape = species)) +
-  geom_point(size = 2.6, alpha = 0.85) +
-  scale_shape_manual(values = c(16, 17, 18)) +
+p_a11y <- ggplot(penguins, aes(flipper_length_mm, body_mass_g, color = species)) +
+  geom_point(size = 2, alpha = 0.75) +
   theme_a11y() +
   scale_color_a11y("dark2_8") +
-  labs(x = "Flipper length (mm)", y = "Body mass (g)")
+  labs(x = "Flipper length (mm)", y = "Body mass (g)", color = "Species") +
+  theme(legend.position = "top")
 p_a11y <- a11y_alt_text(p_a11y,
   "Scatter of penguin body mass vs flipper length by species; Gentoo cluster at long flippers and high body mass.")
 p_a11y
 ```
 
-Four accessibility wins from a few extra lines: `shape = species` encodes group
-via marker shape (Success Criterion 1.4.1), `scale_color_a11y("dark2_8")` swaps
-in WCAG-tagged colors that clear 3:1 on white (Success Criterion 1.4.11),
+Three accessibility wins from a few extra lines: `scale_color_a11y("dark2_8")`
+swaps in WCAG-tagged colors that clear 3:1 on white (Success Criterion 1.4.11),
 `theme_a11y()` applies the recommended font sizes and axis styling (Success
 Criterion 1.4.4), and `a11y_alt_text()` attaches the screen-reader description
-(Success Criterion 1.1.1).
+(Success Criterion 1.1.1). Color is still the only group cue, so the audit
+honestly flags 1.4.1 as `todo` — when shape variety would hurt readability,
+add direct cluster labels or facet by species to clear it.
 
 ## Audit again
 
 ```{r audit-improved, eval = requireNamespace("DT", quietly = TRUE)}
-dt_show(subset(a11y_audit(p_a11y), status %in% c("todo", "ok")))
+audit_a <- a11y_audit_chart(p_a11y)
+cat(a11y_audit_summary(audit_a))
+dt_show(a11y_audit_actionable(audit_a))
 ```
 
-All actionable checks come back as `ok`.
+Alt text and text-size checks come back as `ok`; 1.4.1 stays `todo` by design
+(see the note above).
 
 ## WCAG rubric
 

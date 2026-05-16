@@ -31,7 +31,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">a11yviz</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.1.3</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.1.4</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -100,6 +100,7 @@
 
     <meta name="shinylive:serviceworker_dir" content=".">
 <script>document.documentElement.classList.add("playground-page");</script><p>The same chart rendered with plotnine defaults versus the package’s accessible theme, palette, and alt text. Toggle the WCAG level to see contrast and font thresholds shift; the audit table reports per-criterion status for each version. Switch tabs to compare baseline against improved.</p>
+<p>Edit the code on the left to swap in a different dataset, change aesthetics, or tweak the theme — the chart and audit update on the right. To load a CSV, paste it into a <code>pd.read_csv(StringIO("..."))</code> call, or replace <code>penguins</code> with any DataFrame already in scope.</p>
 <section class="level2 unnumbered"><h2 class="unnumbered" id="live-demo">Live demo<a class="anchor" aria-label="anchor" href="#live-demo"></a>
 </h2>
 <div role="region" aria-label="Interactive Python Shiny demo: baseline vs accessible plotnine, with per-criterion WCAG audit">
@@ -107,32 +108,29 @@
 #|   shinylive does not work in self-contained HTML documents.
 #|   Please set `embed-resources: false` in your metadata.
 #| standalone: true
-#| viewerHeight: 1100
-#| components: [viewer]
+#| viewerHeight: 1200
+#| components: [editor, viewer]
 
 ## file: requirements.txt
 shiny
 plotnine
 pandas
 itables
-a11yviz==0.1.3
+a11yviz==0.1.4
 
 ## file: app.py
 from shiny import App, ui, render, reactive
-from plotnine import (
-    ggplot, aes, geom_point, labs,
-    scale_color_manual, scale_shape_manual,
-)
+from plotnine import ggplot, aes, geom_point, labs, scale_color_manual, theme
 from plotnine.data import penguins
 import pandas as pd
 from itables import to_html_datatable
-from a11yviz import theme_a11y, a11y_palette, a11y_alt_text, a11y_audit
+from a11yviz import (theme_a11y, a11y_palette, a11y_alt_text,
+                     a11y_audit_chart, a11y_audit_actionable)
 
 dt_opts = {"pageLength": 10, "dom": "tip", "scrollX": True,
            "columnDefs": [{"className": "dt-left", "targets": "_all"}]}
 
 penguins = penguins.dropna()
-shapes = ["o", "^", "D", "s"]
 
 def base_plot():
     return (
@@ -144,14 +142,13 @@ def base_plot():
 def improved_plot(level):
     palette = a11y_palette("dark2_8", n=penguins["species"].nunique())
     p = (
-        ggplot(penguins,
-               aes("flipper_length_mm", "body_mass_g",
-                   color="species", shape="species"))
-        + geom_point(size=2.6, alpha=0.85)
+        ggplot(penguins, aes("flipper_length_mm", "body_mass_g", color="species"))
+        + geom_point(size=2, alpha=0.75)
         + scale_color_manual(values=palette)
-        + scale_shape_manual(values=shapes[: penguins["species"].nunique()])
-        + theme_a11y(level=level, base_family="DejaVu Sans")
-        + labs(title="Penguins (theme_a11y + a11y_palette + shape encoding)")
+        + theme_a11y(level=level)
+        + labs(title="Penguins (theme_a11y + a11y_palette)",
+               x="Flipper length (mm)", y="Body mass (g)", color="Species")
+        + theme(legend_position="top")
     )
     return a11y_alt_text(
         p,
@@ -163,9 +160,16 @@ html, body { height: 100%; }
 .bslib-card { height: 100%; }
 .tab-content { display: flex; flex-direction: column; }
 .tab-pane.active { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; }
-.plot-wrap { flex: 1 1 auto; min-height: 420px; height: clamp(420px, 45vh, 540px); }
+.plot-wrap { flex: 1 1 auto; min-height: 320px; height: clamp(320px, 45vh, 540px); }
 .table-responsive { overflow-x: auto; }
 table.dataTable { width: 100% !important; }
+@media (max-width: 768px) {
+  .plot-wrap { min-height: 280px; height: clamp(280px, 40vh, 440px); }
+}
+@media (max-width: 576px) {
+  .plot-wrap { min-height: 240px; height: clamp(240px, 35vh, 360px); }
+  table.dataTable td, table.dataTable th { padding: 4px 6px; font-size: 0.85rem; }
+}
 """
 
 def panel_body(plot_id, audit_id):
@@ -211,16 +215,20 @@ def server(input, output, session):
     def plot_after():
         return improved().draw(show=False)
 
+    def actionable_df(p):
+        rows = a11y_audit_actionable(a11y_audit_chart(p, level=input.level()))
+        return pd.DataFrame(rows)
+
     @render.ui
     def audit_before():
-        df = pd.DataFrame(a11y_audit(base(), level=input.level()))
-        return ui.HTML(to_html_datatable(df, classes="compact stripe hover",
+        return ui.HTML(to_html_datatable(actionable_df(base()),
+                                         classes="compact stripe hover",
                                          showIndex=False, dt_args=dt_opts))
 
     @render.ui
     def audit_after():
-        df = pd.DataFrame(a11y_audit(improved(), level=input.level()))
-        return ui.HTML(to_html_datatable(df, classes="compact stripe hover",
+        return ui.HTML(to_html_datatable(actionable_df(improved()),
+                                         classes="compact stripe hover",
                                          showIndex=False, dt_args=dt_opts))
 
 app = App(app_ui, server)</code></pre>

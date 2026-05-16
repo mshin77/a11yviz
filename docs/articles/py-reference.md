@@ -9,7 +9,7 @@ Composable additions to a plotnine chain.
 
 | Function | Description |
 |----|----|
-| `theme_a11y(level: str = 'AA', base_family: str = '', dark: bool = False)` | Plotnine theme with WCAG contrast settings and recommended font sizes. |
+| `theme_a11y(level: str = 'AA', base_family: str = 'DejaVu Sans', dark: bool = False)` | Plotnine theme with WCAG contrast settings and recommended font sizes. |
 | `scale_color_a11y(palette=None, level='AA', **kwargs)` | Categorical color scale using a WCAG-tagged palette. |
 | `scale_fill_a11y(palette=None, level='AA', **kwargs)` | Categorical fill scale using a WCAG-tagged palette. |
 | `scale_color_a11y_div(palette: str = 'rdbu', **kwargs)` | Diverging color scale (gradient2). |
@@ -55,7 +55,11 @@ Multi-criterion figure audit, rubric, and single-aspect checks.
 
 | Function | Description |
 |----|----|
-| `a11y_audit(p, level: str = 'AA') -> list[dict]` | Return per-criterion status rows for a plotly Figure. |
+| `a11y_audit(p, level: str = 'AA') -> list[dict]` | Return per-criterion status rows (chart + document). |
+| `a11y_audit_chart(p, level: str = 'AA') -> list[dict]` | Return chart-relevant audit rows for a plotly Figure or plotnine plot. |
+| `a11y_audit_doc(level: str = 'AA') -> list[dict]` | Return host-document audit rows (identical at AA and AAA). |
+| `a11y_audit_actionable(audit: list[dict]) -> list[dict]` | Return rows with status ‘todo’ or ‘ok’ – the chart author’s decisions. |
+| `a11y_audit_summary(audit: list[dict]) -> str` | Return a one-line count by status. |
 | `a11y_rubric(level: Optional[str] = None) -> list[dict]` | Return the chart-relevant WCAG 2.1 rubric, optionally filtered by level. |
 | `a11y_check_alt_text(alt_text: Optional[str], element_type: str = 'image', decorative: bool = False, min_length: int = 10) -> bool` | Return True if `alt_text` is valid for `element_type`; warn otherwise. |
 | `a11y_check_headings(path: os.PathLike, min_chars: int = 3) -> list[dict]` | Return heading hierarchy and label issues for a Markdown or HTML file. |

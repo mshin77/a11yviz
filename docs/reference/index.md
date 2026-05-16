@@ -58,7 +58,15 @@ Discrete, diverging, and sequential palettes with WCAG metadata
 Multi-criterion figure audit, rubric, and single-aspect checks
 
 - [`a11y_audit()`](https://mshin77.github.io/a11yviz/reference/a11y_audit.md)
-  : Audit a plot against accessibility standards
+  : Chart + document accessibility audit
+- [`a11y_audit_chart()`](https://mshin77.github.io/a11yviz/reference/a11y_audit_chart.md)
+  : Chart-only accessibility audit
+- [`a11y_audit_doc()`](https://mshin77.github.io/a11yviz/reference/a11y_audit_doc.md)
+  : Document-level accessibility audit
+- [`a11y_audit_actionable()`](https://mshin77.github.io/a11yviz/reference/a11y_audit_actionable.md)
+  : Actionable rows from an audit
+- [`a11y_audit_summary()`](https://mshin77.github.io/a11yviz/reference/a11y_audit_summary.md)
+  : One-line summary of an audit
 - [`a11y_rubric()`](https://mshin77.github.io/a11yviz/reference/a11y_rubric.md)
   : WCAG 2.1 rubric for the success criteria a11yviz addresses
 - [`a11y_check_alt_text()`](https://mshin77.github.io/a11yviz/reference/a11y_check_alt_text.md)
@@ -106,10 +114,5 @@ One-shot helpers and resource paths
   : Contents of the accessible CSS
 - [`a11y_wcag_url()`](https://mshin77.github.io/a11yviz/reference/a11y_wcag_url.md)
   : WCAG 2.1 specification URL for a success criterion
-
-## Local playground
-
-Launch the Shiny demo in a local R session
-
 - [`run_app()`](https://mshin77.github.io/a11yviz/reference/run_app.md)
   : Launch the local accessibility playground

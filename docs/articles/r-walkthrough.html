@@ -31,7 +31,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">a11yviz</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.1.3</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.1.4</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -100,6 +100,7 @@
 
     <meta name="shinylive:serviceworker_dir" content=".">
 <script>document.documentElement.classList.add("playground-page");</script><p>The same chart rendered with ggplot defaults versus the package’s accessible theme, palette, and alt text. Toggle the WCAG level to see contrast and font thresholds shift; the audit table reports per-criterion status for each version. Switch tabs to compare baseline against improved.</p>
+<p>Edit the code on the left to swap in a different dataset, change aesthetics, or tweak the theme — the chart and audit update on the right. To load a CSV, paste it into a <code>read.csv(text = "...")</code> call, or replace <code>penguins</code> with any data frame already in scope.</p>
 <section class="level2 unnumbered"><h2 class="unnumbered" id="live-demo">Live demo<a class="anchor" aria-label="anchor" href="#live-demo"></a>
 </h2>
 <div role="region" aria-label="Interactive R Shiny demo: baseline vs accessible ggplot, with per-criterion WCAG audit">
@@ -107,8 +108,8 @@
 <span><span class="co">#|   shinylive does not work in self-contained HTML documents.</span></span>
 <span><span class="co">#|   Please set `embed-resources: false` in your metadata.</span></span>
 <span><span class="co">#| standalone: true</span></span>
-<span><span class="co">#| viewerHeight: 1100</span></span>
-<span><span class="co">#| components: [viewer]</span></span>
+<span><span class="co">#| viewerHeight: 1200</span></span>
+<span><span class="co">#| components: [editor, viewer]</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">suppressPackageStartupMessages</a></span><span class="op">(</span><span class="op">{</span></span>
 <span>  <span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://shiny.posit.co/" class="external-link">shiny</a></span><span class="op">)</span></span>
 <span>  <span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://rstudio.github.io/bslib/" class="external-link">bslib</a></span><span class="op">)</span></span>
@@ -157,11 +158,19 @@
 <span>  <span class="va">p</span></span>
 <span><span class="op">}</span></span>
 <span></span>
-<span><span class="va">a11y_audit</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">p</span>, <span class="va">level</span> <span class="op">=</span> <span class="st">"AA"</span><span class="op">)</span> <span class="op">{</span></span>
+<span><span class="va">a11y_audit_actionable</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">audit</span><span class="op">)</span></span>
+<span>  <span class="va">audit</span><span class="op">[</span><span class="va">audit</span><span class="op">$</span><span class="va">status</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"todo"</span>, <span class="st">"ok"</span><span class="op">)</span>, , drop <span class="op">=</span> <span class="cn">FALSE</span><span class="op">]</span></span>
+<span></span>
+<span><span class="va">a11y_audit_summary</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">audit</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="va">todo</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">audit</span><span class="op">$</span><span class="va">status</span> <span class="op">==</span> <span class="st">"todo"</span><span class="op">)</span></span>
+<span>  <span class="va">ok</span>   <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">audit</span><span class="op">$</span><span class="va">status</span> <span class="op">==</span> <span class="st">"ok"</span><span class="op">)</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span><span class="st">"%d to do, %d ok, %d already handled."</span>, <span class="va">todo</span>, <span class="va">ok</span>, <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">audit</span><span class="op">)</span> <span class="op">-</span> <span class="va">todo</span> <span class="op">-</span> <span class="va">ok</span><span class="op">)</span></span>
+<span><span class="op">}</span></span>
+<span></span>
+<span><span class="va">a11y_audit_chart</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">p</span>, <span class="va">level</span> <span class="op">=</span> <span class="st">"AA"</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="va">alt_text</span>  <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">p</span>, <span class="st">"a11y_alt"</span><span class="op">)</span> <span class="op"><a href="https://rdrr.io/r/base/Control.html" class="external-link">%||%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">p</span>, <span class="st">"alt"</span><span class="op">)</span></span>
 <span>  <span class="va">has_alt</span>   <span class="op">&lt;-</span> <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NULL.html" class="external-link">is.null</a></span><span class="op">(</span><span class="va">alt_text</span><span class="op">)</span> <span class="op">&amp;&amp;</span> <span class="fu"><a href="https://rdrr.io/r/base/nchar.html" class="external-link">nzchar</a></span><span class="op">(</span><span class="va">alt_text</span><span class="op">)</span></span>
-<span>  <span class="va">is_chart</span>  <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/class.html" class="external-link">inherits</a></span><span class="op">(</span><span class="va">p</span>, <span class="st">"ggplot"</span><span class="op">)</span></span>
-<span>  <span class="va">applied</span>   <span class="op">&lt;-</span> <span class="kw">if</span> <span class="op">(</span><span class="va">is_chart</span><span class="op">)</span> <span class="st">"applied"</span> <span class="kw">else</span> <span class="st">"unknown"</span></span>
+<span>  <span class="va">applied</span>   <span class="op">&lt;-</span> <span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/class.html" class="external-link">inherits</a></span><span class="op">(</span><span class="va">p</span>, <span class="st">"ggplot"</span><span class="op">)</span><span class="op">)</span> <span class="st">"applied"</span> <span class="kw">else</span> <span class="st">"unknown"</span></span>
 <span>  <span class="va">threshold</span> <span class="op">&lt;-</span> <span class="kw">if</span> <span class="op">(</span><span class="va">level</span> <span class="op">==</span> <span class="st">"AAA"</span><span class="op">)</span> <span class="fl">14</span> <span class="kw">else</span> <span class="fl">12</span></span>
 <span>  <span class="va">base_size</span> <span class="op">&lt;-</span> <span class="va">p</span><span class="op">$</span><span class="va">theme</span><span class="op">$</span><span class="va">text</span><span class="op">$</span><span class="va">size</span></span>
 <span>  <span class="va">text_ok</span>   <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">is.numeric</a></span><span class="op">(</span><span class="va">base_size</span><span class="op">)</span> <span class="op">&amp;&amp;</span> <span class="va">base_size</span> <span class="op">&gt;=</span> <span class="va">threshold</span></span>
@@ -173,32 +182,25 @@
 <span>                  <span class="kw">else</span> <span class="kw">if</span> <span class="op">(</span><span class="va">has_redundant</span><span class="op">)</span> <span class="st">"shape or linetype redundantly encodes group"</span></span>
 <span>                  <span class="kw">else</span> <span class="st">"add shape= or linetype= to redundantly encode the group"</span></span>
 <span>  <span class="va">rows</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
-<span>    criterion <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"1.1.1"</span>,<span class="st">"1.3.1"</span>,<span class="st">"1.4.1"</span>,<span class="st">"1.4.3"</span>,<span class="st">"1.4.4"</span>,<span class="st">"1.4.4"</span>,</span>
-<span>                  <span class="st">"1.4.10"</span>,<span class="st">"1.4.11"</span>,<span class="st">"1.4.12"</span>,<span class="st">"1.4.13"</span>,<span class="st">"2.4.7"</span><span class="op">)</span>,</span>
-<span>    check <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Alt text on figure"</span>,<span class="st">"Heading hierarchy"</span>,<span class="st">"Redundant group encoding"</span>,</span>
+<span>    criterion <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"1.1.1"</span>, <span class="st">"1.4.1"</span>, <span class="st">"1.4.3"</span>, <span class="st">"1.4.4"</span>, <span class="st">"1.4.11"</span>, <span class="st">"1.4.13"</span><span class="op">)</span>,</span>
+<span>    check <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Alt text on figure"</span>, <span class="st">"Redundant group encoding"</span>,</span>
 <span>              <span class="st">"Text contrast (Min)"</span>,</span>
 <span>              <span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span><span class="st">"Recommended text size (%s default)"</span>, <span class="va">level</span><span class="op">)</span>,</span>
-<span>              <span class="st">"Text resizable"</span>,<span class="st">"Reflow at 320 CSS px"</span>,<span class="st">"Non-text contrast"</span>,</span>
-<span>              <span class="st">"Body text spacing"</span>,<span class="st">"Content on hover or focus"</span>,<span class="st">"Visible keyboard focus"</span><span class="op">)</span>,</span>
+<span>              <span class="st">"Non-text contrast"</span>, <span class="st">"Content on hover or focus"</span><span class="op">)</span>,</span>
 <span>    status <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="kw">if</span> <span class="op">(</span><span class="va">has_alt</span><span class="op">)</span> <span class="st">"partial"</span> <span class="kw">else</span> <span class="st">"todo"</span>,</span>
-<span>               <span class="st">"doc"</span>, <span class="va">color_status</span>, <span class="va">applied</span>,</span>
+<span>               <span class="va">color_status</span>, <span class="va">applied</span>,</span>
 <span>               <span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">is.numeric</a></span><span class="op">(</span><span class="va">base_size</span><span class="op">)</span><span class="op">)</span> <span class="op">(</span><span class="kw">if</span> <span class="op">(</span><span class="va">text_ok</span><span class="op">)</span> <span class="st">"ok"</span> <span class="kw">else</span> <span class="st">"todo"</span><span class="op">)</span> <span class="kw">else</span> <span class="st">"manual"</span>,</span>
-<span>               <span class="va">applied</span>, <span class="st">"manual"</span>, <span class="va">applied</span>, <span class="st">"css"</span>, <span class="st">"n/a"</span>, <span class="st">"css"</span><span class="op">)</span>,</span>
+<span>               <span class="va">applied</span>, <span class="st">"n/a"</span><span class="op">)</span>,</span>
 <span>    note <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="kw">if</span> <span class="op">(</span><span class="va">has_alt</span><span class="op">)</span> <span class="st">"alt stored on figure; emit via the renderer's &lt;img alt&gt;"</span></span>
 <span>             <span class="kw">else</span> <span class="st">"call a11y_alt_text() or a11y_alt_template()"</span>,</span>
-<span>             <span class="st">"run a11y_check_headings() on the host document"</span>,</span>
 <span>             <span class="va">color_note</span>,</span>
 <span>             <span class="st">"theme_a11y() / a11y_layout() set 4.5:1 text on 3:1 non-text"</span>,</span>
 <span>             <span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">is.numeric</a></span><span class="op">(</span><span class="va">base_size</span><span class="op">)</span><span class="op">)</span></span>
 <span>               <span class="op">(</span><span class="kw">if</span> <span class="op">(</span><span class="va">text_ok</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span><span class="st">"base size %g pt (min %g pt)"</span>, <span class="va">base_size</span>, <span class="va">threshold</span><span class="op">)</span></span>
 <span>                <span class="kw">else</span> <span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span><span class="st">"base size %g pt; bump to &gt;= %g pt"</span>, <span class="va">base_size</span>, <span class="va">threshold</span><span class="op">)</span><span class="op">)</span></span>
 <span>             <span class="kw">else</span> <span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span><span class="st">"verify text size manually (min %g pt for %s)"</span>, <span class="va">threshold</span>, <span class="va">level</span><span class="op">)</span>,</span>
-<span>             <span class="st">"fonts set in pt; layout scales with container"</span>,</span>
-<span>             <span class="st">"verify the host page reflows at 320 px without 2D scroll"</span>,</span>
 <span>             <span class="st">"axis lines, gridlines, error bars styled"</span>,</span>
-<span>             <span class="st">"include a11y_css() for line-height and paragraph spacing"</span>,</span>
-<span>             <span class="st">"ggplot output has no interactive hover tooltips"</span>,</span>
-<span>             <span class="st">"include a11y_css() for keyboard focus rings"</span><span class="op">)</span>,</span>
+<span>             <span class="st">"ggplot output has no interactive hover tooltips"</span><span class="op">)</span>,</span>
 <span>    stringsAsFactors <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span>  <span class="op">)</span></span>
 <span>  <span class="kw">if</span> <span class="op">(</span><span class="va">level</span> <span class="op">==</span> <span class="st">"AAA"</span><span class="op">)</span></span>
@@ -235,9 +237,16 @@
 <span><span class="st">    .bslib-card { height: 100%; }</span></span>
 <span><span class="st">    .tab-content { display: flex; flex-direction: column; }</span></span>
 <span><span class="st">    .tab-pane.active { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; }</span></span>
-<span><span class="st">    .plot-wrap { flex: 1 1 auto; min-height: 420px; height: clamp(420px, 45vh, 540px); }</span></span>
+<span><span class="st">    .plot-wrap { flex: 1 1 auto; min-height: 320px; height: clamp(320px, 45vh, 540px); }</span></span>
 <span><span class="st">    .table-responsive { overflow-x: auto; }</span></span>
 <span><span class="st">    table.dataTable { width: 100% !important; }</span></span>
+<span><span class="st">    @media (max-width: 768px) {</span></span>
+<span><span class="st">      .plot-wrap { min-height: 280px; height: clamp(280px, 40vh, 440px); }</span></span>
+<span><span class="st">    }</span></span>
+<span><span class="st">    @media (max-width: 576px) {</span></span>
+<span><span class="st">      .plot-wrap { min-height: 240px; height: clamp(240px, 35vh, 360px); }</span></span>
+<span><span class="st">      table.dataTable td, table.dataTable th { padding: 4px 6px; font-size: 0.85rem; }</span></span>
+<span><span class="st">    }</span></span>
 <span><span class="st">  "</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>  <span class="fu"><a href="https://rstudio.github.io/bslib/reference/navset.html" class="external-link">navset_card_underline</a></span><span class="op">(</span></span>
 <span>    <span class="fu"><a href="https://rstudio.github.io/bslib/reference/nav-items.html" class="external-link">nav_panel</a></span><span class="op">(</span><span class="st">"Baseline"</span>, <span class="fu">panel_body</span><span class="op">(</span><span class="st">"plot_before"</span>, <span class="st">"audit_before"</span><span class="op">)</span><span class="op">)</span>,</span>
@@ -253,14 +262,13 @@
 <span>  <span class="op">}</span><span class="op">)</span></span>
 <span></span>
 <span>  <span class="va">improved_plot</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/shiny/man/reactive.html" class="external-link">reactive</a></span><span class="op">(</span><span class="op">{</span></span>
-<span>    <span class="va">n</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">penguins</span><span class="op">$</span><span class="va">species</span><span class="op">)</span><span class="op">)</span></span>
-<span>    <span class="va">p</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">penguins</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">flipper_length_mm</span>, <span class="va">body_mass_g</span>,</span>
-<span>                              color <span class="op">=</span> <span class="va">species</span>, shape <span class="op">=</span> <span class="va">species</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
-<span>      <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">2.6</span>, alpha <span class="op">=</span> <span class="fl">0.85</span><span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="va">p</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">penguins</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">flipper_length_mm</span>, <span class="va">body_mass_g</span>, color <span class="op">=</span> <span class="va">species</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>      <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">2</span>, alpha <span class="op">=</span> <span class="fl">0.75</span><span class="op">)</span> <span class="op">+</span></span>
 <span>      <span class="fu"><a href="../reference/scale_a11y.html">scale_color_a11y</a></span><span class="op">(</span>level <span class="op">=</span> <span class="va">input</span><span class="op">$</span><span class="va">level</span><span class="op">)</span> <span class="op">+</span></span>
-<span>      <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_manual.html" class="external-link">scale_shape_manual</a></span><span class="op">(</span>values <span class="op">=</span> <span class="va">shapes</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span><span class="op">]</span><span class="op">)</span> <span class="op">+</span></span>
 <span>      <span class="fu"><a href="../reference/theme_a11y.html">theme_a11y</a></span><span class="op">(</span>level <span class="op">=</span> <span class="va">input</span><span class="op">$</span><span class="va">level</span><span class="op">)</span> <span class="op">+</span></span>
-<span>      <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Penguins (theme_a11y + scale_color_a11y + shape)"</span><span class="op">)</span></span>
+<span>      <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Penguins (theme_a11y + scale_color_a11y)"</span>,</span>
+<span>           x <span class="op">=</span> <span class="st">"Flipper length (mm)"</span>, y <span class="op">=</span> <span class="st">"Body mass (g)"</span>, color <span class="op">=</span> <span class="st">"Species"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>      <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span>legend.position <span class="op">=</span> <span class="st">"top"</span><span class="op">)</span></span>
 <span>    <span class="fu"><a href="../reference/a11y_alt_text.html">a11y_alt_text</a></span><span class="op">(</span><span class="va">p</span>, <span class="st">"Penguin body mass vs flipper length by species, AA accessible."</span><span class="op">)</span></span>
 <span>  <span class="op">}</span><span class="op">)</span></span>
 <span></span>
@@ -271,12 +279,12 @@
 <span>                     columnDefs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>className <span class="op">=</span> <span class="st">"dt-left"</span>, targets <span class="op">=</span> <span class="st">"_all"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span>  <span class="va">output</span><span class="op">$</span><span class="va">audit_before</span> <span class="op">&lt;-</span> <span class="fu">DT</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/DT/man/dataTableOutput.html" class="external-link">renderDT</a></span><span class="op">(</span></span>
-<span>    <span class="fu"><a href="../reference/a11y_audit.html">a11y_audit</a></span><span class="op">(</span><span class="fu">base_plot</span><span class="op">(</span><span class="op">)</span>, level <span class="op">=</span> <span class="va">input</span><span class="op">$</span><span class="va">level</span><span class="op">)</span>,</span>
+<span>    <span class="fu"><a href="../reference/a11y_audit_actionable.html">a11y_audit_actionable</a></span><span class="op">(</span><span class="fu"><a href="../reference/a11y_audit_chart.html">a11y_audit_chart</a></span><span class="op">(</span><span class="fu">base_plot</span><span class="op">(</span><span class="op">)</span>,     level <span class="op">=</span> <span class="va">input</span><span class="op">$</span><span class="va">level</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>    options <span class="op">=</span> <span class="va">audit_opts</span>, rownames <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>    class <span class="op">=</span> <span class="st">"compact stripe hover"</span>, selection <span class="op">=</span> <span class="st">"none"</span></span>
 <span>  <span class="op">)</span></span>
 <span>  <span class="va">output</span><span class="op">$</span><span class="va">audit_after</span>  <span class="op">&lt;-</span> <span class="fu">DT</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/DT/man/dataTableOutput.html" class="external-link">renderDT</a></span><span class="op">(</span></span>
-<span>    <span class="fu"><a href="../reference/a11y_audit.html">a11y_audit</a></span><span class="op">(</span><span class="fu">improved_plot</span><span class="op">(</span><span class="op">)</span>, level <span class="op">=</span> <span class="va">input</span><span class="op">$</span><span class="va">level</span><span class="op">)</span>,</span>
+<span>    <span class="fu"><a href="../reference/a11y_audit_actionable.html">a11y_audit_actionable</a></span><span class="op">(</span><span class="fu"><a href="../reference/a11y_audit_chart.html">a11y_audit_chart</a></span><span class="op">(</span><span class="fu">improved_plot</span><span class="op">(</span><span class="op">)</span>, level <span class="op">=</span> <span class="va">input</span><span class="op">$</span><span class="va">level</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>    options <span class="op">=</span> <span class="va">audit_opts</span>, rownames <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>    class <span class="op">=</span> <span class="st">"compact stripe hover"</span>, selection <span class="op">=</span> <span class="st">"none"</span></span>
 <span>  <span class="op">)</span></span>

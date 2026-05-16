@@ -1,9 +1,10 @@
-# Audit a plot against accessibility standards
+# Chart + document accessibility audit
 
-Returns a tibble of accessibility checks, with a status per check.
-Anchored to W3C WCAG 2.1. Each row carries a `criterion`
-(success-criterion) number so the result joins cleanly to
-[`a11y_rubric()`](https://mshin77.github.io/a11yviz/reference/a11y_rubric.md).
+Union of
+[`a11y_audit_chart()`](https://mshin77.github.io/a11yviz/reference/a11y_audit_chart.md)
+and
+[`a11y_audit_doc()`](https://mshin77.github.io/a11yviz/reference/a11y_audit_doc.md).
+Prefer the split functions when one scope is enough.
 
 ## Usage
 
@@ -23,9 +24,6 @@ a11y_audit(p, level = "AA")
 
 ## Value
 
-Data frame with columns `criterion`, `check`, `status`, `note`. Pass any
-`criterion` value to
-[`a11y_wcag_url()`](https://mshin77.github.io/a11yviz/reference/a11y_wcag_url.md)
-for the spec link, or join to
+Data frame with columns `criterion`, `check`, `status`, `note`. Join to
 [`a11y_rubric()`](https://mshin77.github.io/a11yviz/reference/a11y_rubric.md)
 for principle, guideline, and threshold.

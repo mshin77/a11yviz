@@ -4,7 +4,7 @@
 import a11yviz
 import pandas as pd
 from itables import show
-from plotnine import aes, geom_point, ggplot, labs, scale_shape_manual
+from plotnine import aes, geom_point, ggplot, labs, theme
 from plotnine.data import penguins
 
 penguins = penguins.dropna()
@@ -49,9 +49,13 @@ where the chart needs human attention.
 | `n/a` | not applicable to this chart type (e.g., hover on plotnine) |
 
 ``` python
-show(pd.DataFrame([r for r in a11yviz.a11y_audit(p) if r["status"] in ("todo", "ok")]),
+audit_p = a11yviz.a11y_audit_chart(p)
+print(a11yviz.a11y_audit_summary(audit_p))
+show(pd.DataFrame(a11yviz.a11y_audit_actionable(audit_p)),
      table_id="audit-example", **dt_options)
 ```
+
+    2 to do, 0 ok, 4 already handled.
 
 |  |
 |:---|
@@ -66,13 +70,12 @@ Two actionable items come back as `todo`:
 
 ``` python
 p2 = (
-    ggplot(penguins, aes("flipper_length_mm", "body_mass_g",
-                         color="species", shape="species"))
-    + geom_point(size=2.6, alpha=0.85)
-    + scale_shape_manual(values=["o", "^", "D"])
-    + a11yviz.theme_a11y(base_family="DejaVu Sans")
+    ggplot(penguins, aes("flipper_length_mm", "body_mass_g", color="species"))
+    + geom_point(size=2, alpha=0.75)
+    + a11yviz.theme_a11y()
     + a11yviz.scale_color_a11y(palette="dark2_8")
-    + labs(x="Flipper length (mm)", y="Body mass (g)")
+    + labs(x="Flipper length (mm)", y="Body mass (g)", color="Species")
+    + theme(legend_position="top")
 )
 p2 = a11yviz.a11y_alt_text(
     p2,
@@ -84,28 +87,35 @@ p2
 
 ![](py-a11yviz_files/figure-html/improved-output-1.png)
 
-Four accessibility wins from a few extra lines: `shape="species"`
-encodes group via marker shape (Success Criterion 1.4.1),
+Three accessibility wins from a few extra lines:
 `scale_color_a11y("dark2_8")` swaps in WCAG-tagged colors that clear 3:1
 on white (Success Criterion 1.4.11),
 [`theme_a11y()`](https://mshin77.github.io/a11yviz/reference/theme_a11y.md)
 applies the recommended font sizes and axis styling (Success Criterion
 1.4.4), and
 [`a11y_alt_text()`](https://mshin77.github.io/a11yviz/reference/a11y_alt_text.md)
-attaches the screen-reader description (Success Criterion 1.1.1).
+attaches the screen-reader description (Success Criterion 1.1.1). Color
+is still the only group cue, so the audit honestly flags 1.4.1 as `todo`
+— when shape variety would hurt readability, add direct cluster labels
+or facet by species to clear it.
 
 ## Audit again
 
 ``` python
-show(pd.DataFrame([r for r in a11yviz.a11y_audit(p2) if r["status"] in ("todo", "ok")]),
+audit_a = a11yviz.a11y_audit_chart(p2)
+print(a11yviz.a11y_audit_summary(audit_a))
+show(pd.DataFrame(a11yviz.a11y_audit_actionable(audit_a)),
      table_id="audit-improved", **dt_options)
 ```
+
+    1 to do, 0 ok, 5 already handled.
 
 |  |
 |:---|
 | [![](data:image/svg+xml;base64,PHN2ZyBjbGFzcz0ibWFpbi1zdmciIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHdpZHRoPSI2NCIgdmlld2JveD0iMCAwIDUwMCA0MDAiIHN0eWxlPSJmb250LWZhbWlseTogJiMzOTtEcm9pZCBTYW5zJiMzOTssIHNhbnMtc2VyaWY7Ij48ZyBzdHlsZT0iZmlsbDojZDlkN2ZjIj48cGF0aCBkPSJNMTAwLDQwMEg1MDBWMzU3SDEwMFoiIC8+PHBhdGggZD0iTTEwMCwzMDBINDAwVjI1N0gxMDBaIiAvPjxwYXRoIGQ9Ik0wLDIwMEg0MDBWMTU3SDBaIiAvPjxwYXRoIGQ9Ik0xMDAsMTAwSDUwMFY1N0gxMDBaIiAvPjxwYXRoIGQ9Ik0xMDAsMzUwSDUwMFYzMDdIMTAwWiIgLz48cGF0aCBkPSJNMTAwLDI1MEg0MDBWMjA3SDEwMFoiIC8+PHBhdGggZD0iTTAsMTUwSDQwMFYxMDdIMFoiIC8+PHBhdGggZD0iTTEwMCw1MEg1MDBWN0gxMDBaIiAvPjwvZz48ZyBzdHlsZT0iZmlsbDojMWExMzY2O3N0cm9rZTojMWExMzY2OyI+PHJlY3QgeD0iMTAwIiB5PSI3IiB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQzIj48YW5pbWF0ZSBhdHRyaWJ1dGVuYW1lPSJ3aWR0aCIgdmFsdWVzPSIwOzQwMDswIiBkdXI9IjVzIiByZXBlYXRjb3VudD0iaW5kZWZpbml0ZSI+PC9hbmltYXRlPjxhbmltYXRlIGF0dHJpYnV0ZW5hbWU9IngiIHZhbHVlcz0iMTAwOzEwMDs1MDAiIGR1cj0iNXMiIHJlcGVhdGNvdW50PSJpbmRlZmluaXRlIj48L2FuaW1hdGU+PC9yZWN0PjxyZWN0IHg9IjAiIHk9IjEwNyIgd2lkdGg9IjQwMCIgaGVpZ2h0PSI0MyI+PGFuaW1hdGUgYXR0cmlidXRlbmFtZT0id2lkdGgiIHZhbHVlcz0iMDs0MDA7MCIgZHVyPSIzLjVzIiByZXBlYXRjb3VudD0iaW5kZWZpbml0ZSI+PC9hbmltYXRlPjxhbmltYXRlIGF0dHJpYnV0ZW5hbWU9IngiIHZhbHVlcz0iMDswOzQwMCIgZHVyPSIzLjVzIiByZXBlYXRjb3VudD0iaW5kZWZpbml0ZSI+PC9hbmltYXRlPjwvcmVjdD48cmVjdCB4PSIxMDAiIHk9IjIwNyIgd2lkdGg9IjMwMCIgaGVpZ2h0PSI0MyI+PGFuaW1hdGUgYXR0cmlidXRlbmFtZT0id2lkdGgiIHZhbHVlcz0iMDszMDA7MCIgZHVyPSIzcyIgcmVwZWF0Y291bnQ9ImluZGVmaW5pdGUiPjwvYW5pbWF0ZT48YW5pbWF0ZSBhdHRyaWJ1dGVuYW1lPSJ4IiB2YWx1ZXM9IjEwMDsxMDA7NDAwIiBkdXI9IjNzIiByZXBlYXRjb3VudD0iaW5kZWZpbml0ZSI+PC9hbmltYXRlPjwvcmVjdD48cmVjdCB4PSIxMDAiIHk9IjMwNyIgd2lkdGg9IjQwMCIgaGVpZ2h0PSI0MyI+PGFuaW1hdGUgYXR0cmlidXRlbmFtZT0id2lkdGgiIHZhbHVlcz0iMDs0MDA7MCIgZHVyPSI0cyIgcmVwZWF0Y291bnQ9ImluZGVmaW5pdGUiPjwvYW5pbWF0ZT48YW5pbWF0ZSBhdHRyaWJ1dGVuYW1lPSJ4IiB2YWx1ZXM9IjEwMDsxMDA7NTAwIiBkdXI9IjRzIiByZXBlYXRjb3VudD0iaW5kZWZpbml0ZSI+PC9hbmltYXRlPjwvcmVjdD48ZyBzdHlsZT0iZmlsbDp0cmFuc3BhcmVudDtzdHJva2Utd2lkdGg6ODsgc3Ryb2tlLWxpbmVqb2luOnJvdW5kIiByeD0iNSI+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNDUgNTApIHJvdGF0ZSgtNDUpIj48Y2lyY2xlIHI9IjMzIiBjeD0iMCIgY3k9IjAiPjwvY2lyY2xlPjxyZWN0IHg9Ii04IiB5PSIzMiIgd2lkdGg9IjE2IiBoZWlnaHQ9IjMwIiAvPjwvZz48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSg0NTAgMTUyKSI+PHBvbHlsaW5lIHBvaW50cz0iLTE1LC0yMCAtMzUsLTIwIC0zNSw0MCAyNSw0MCAyNSwyMCI+PC9wb2x5bGluZT48cmVjdCB4PSItMTUiIHk9Ii00MCIgd2lkdGg9IjYwIiBoZWlnaHQ9IjYwIiAvPjwvZz48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSg1MCAzNTIpIj48cG9seWdvbiBwb2ludHM9Ii0zNSwtNSAwLC00MCAzNSwtNSI+PC9wb2x5Z29uPjxwb2x5Z29uIHBvaW50cz0iLTM1LDEwIDAsNDUgMzUsMTAiPjwvcG9seWdvbj48L2c+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNzUgMjUwKSI+PHBvbHlsaW5lIHBvaW50cz0iLTMwLDMwIC02MCwwIC0zMCwtMzAiPjwvcG9seWxpbmU+PHBvbHlsaW5lIHBvaW50cz0iMCwzMCAtMzAsMCAwLC0zMCI+PC9wb2x5bGluZT48L2c+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNDI1IDI1MCkgcm90YXRlKDE4MCkiPjxwb2x5bGluZSBwb2ludHM9Ii0zMCwzMCAtNjAsMCAtMzAsLTMwIj48L3BvbHlsaW5lPjxwb2x5bGluZSBwb2ludHM9IjAsMzAgLTMwLDAgMCwtMzAiPjwvcG9seWxpbmU+PC9nPjwvZz48L2c+PC9zdmc+)](https://mwouts.github.io/itables/) Loading ITables v2.7.3 from the internet... (need [help](https://mwouts.github.io/itables/troubleshooting.html)?) |
 
-All actionable checks come back as `ok`.
+Alt text and text-size checks come back as `ok`; 1.4.1 stays `todo` by
+design (see the note above).
 
 ## WCAG rubric
 

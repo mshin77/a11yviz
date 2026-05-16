@@ -52,7 +52,10 @@ where the chart needs human attention.
 | `n/a` | not applicable to this chart type (e.g., hover on ggplot) |
 
 ``` r
-dt_show(subset(a11y_audit(p), status %in% c("todo", "ok")))
+audit_p <- a11y_audit_chart(p)
+cat(a11y_audit_summary(audit_p))
+#> 2 to do, 0 ok, 4 already handled.
+dt_show(a11y_audit_actionable(audit_p))
 ```
 
 Two actionable items come back as `todo`:
@@ -63,13 +66,12 @@ Two actionable items come back as `todo`:
 ## Improved
 
 ``` r
-p_a11y <- ggplot(penguins, aes(flipper_length_mm, body_mass_g,
-                               color = species, shape = species)) +
-  geom_point(size = 2.6, alpha = 0.85) +
-  scale_shape_manual(values = c(16, 17, 18)) +
+p_a11y <- ggplot(penguins, aes(flipper_length_mm, body_mass_g, color = species)) +
+  geom_point(size = 2, alpha = 0.75) +
   theme_a11y() +
   scale_color_a11y("dark2_8") +
-  labs(x = "Flipper length (mm)", y = "Body mass (g)")
+  labs(x = "Flipper length (mm)", y = "Body mass (g)", color = "Species") +
+  theme(legend.position = "top")
 p_a11y <- a11y_alt_text(p_a11y,
   "Scatter of penguin body mass vs flipper length by species; Gentoo cluster at long flippers and high body mass.")
 p_a11y
@@ -77,23 +79,29 @@ p_a11y
 
 ![](a11yviz_files/figure-html/improved-1.png)
 
-Four accessibility wins from a few extra lines: `shape = species`
-encodes group via marker shape (Success Criterion 1.4.1),
+Three accessibility wins from a few extra lines:
 `scale_color_a11y("dark2_8")` swaps in WCAG-tagged colors that clear 3:1
 on white (Success Criterion 1.4.11),
 [`theme_a11y()`](https://mshin77.github.io/a11yviz/reference/theme_a11y.md)
 applies the recommended font sizes and axis styling (Success Criterion
 1.4.4), and
 [`a11y_alt_text()`](https://mshin77.github.io/a11yviz/reference/a11y_alt_text.md)
-attaches the screen-reader description (Success Criterion 1.1.1).
+attaches the screen-reader description (Success Criterion 1.1.1). Color
+is still the only group cue, so the audit honestly flags 1.4.1 as `todo`
+— when shape variety would hurt readability, add direct cluster labels
+or facet by species to clear it.
 
 ## Audit again
 
 ``` r
-dt_show(subset(a11y_audit(p_a11y), status %in% c("todo", "ok")))
+audit_a <- a11y_audit_chart(p_a11y)
+cat(a11y_audit_summary(audit_a))
+#> 1 to do, 1 ok, 4 already handled.
+dt_show(a11y_audit_actionable(audit_a))
 ```
 
-All actionable checks come back as `ok`.
+Alt text and text-size checks come back as `ok`; 1.4.1 stays `todo` by
+design (see the note above).
 
 ## WCAG rubric
 

@@ -1,5 +1,10 @@
 # Changelog
 
+## a11yviz 0.1.4
+
+- Split the audit into chart and document parts for shorter tables.
+- Cleaner example chart with clearer axis labels.
+
 ## a11yviz 0.1.3
 
 - Color and fill scales accept the WCAG level.

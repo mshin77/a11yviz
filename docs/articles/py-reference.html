@@ -29,7 +29,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">a11yviz</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.1.3</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.1.4</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -111,7 +111,7 @@
 </tr></thead>
 <tbody>
 <tr class="odd">
-<td><code>theme_a11y(level: str = 'AA', base_family: str = '', dark: bool = False)</code></td>
+<td><code>theme_a11y(level: str = 'AA', base_family: str = 'DejaVu Sans', dark: bool = False)</code></td>
 <td>Plotnine theme with WCAG contrast settings and recommended font sizes.</td>
 </tr>
 <tr class="even">
@@ -240,7 +240,23 @@
 <tbody>
 <tr class="odd">
 <td><code>a11y_audit(p, level: str = 'AA') -&gt; list[dict]</code></td>
-<td>Return per-criterion status rows for a plotly Figure.</td>
+<td>Return per-criterion status rows (chart + document).</td>
+</tr>
+<tr class="even">
+<td><code>a11y_audit_chart(p, level: str = 'AA') -&gt; list[dict]</code></td>
+<td>Return chart-relevant audit rows for a plotly Figure or plotnine plot.</td>
+</tr>
+<tr class="odd">
+<td><code>a11y_audit_doc(level: str = 'AA') -&gt; list[dict]</code></td>
+<td>Return host-document audit rows (identical at AA and AAA).</td>
+</tr>
+<tr class="even">
+<td><code>a11y_audit_actionable(audit: list[dict]) -&gt; list[dict]</code></td>
+<td>Return rows with status ‘todo’ or ‘ok’ – the chart author’s decisions.</td>
+</tr>
+<tr class="odd">
+<td><code>a11y_audit_summary(audit: list[dict]) -&gt; str</code></td>
+<td>Return a one-line count by status.</td>
 </tr>
 <tr class="even">
 <td><code>a11y_rubric(level: Optional[str] = None) -&gt; list[dict]</code></td>

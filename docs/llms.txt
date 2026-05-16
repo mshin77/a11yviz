@@ -15,7 +15,7 @@ alt-text scaffolds, audits, a document rubric, heading and reading-level
 checks, `shiny` ARIA helpers, and a stylesheet for `DT` and
 `DiagrammeR`.
 
-Python sibling: [a11yviz](https://github.com/mshin77/a11yviz-py).
+Python version: [a11yviz](https://github.com/mshin77/a11yviz-py).
 
 ## Installation
 
@@ -55,11 +55,11 @@ a11y_alt_text(p, "Scatter of penguin body mass vs flipper length by species.")
 ## Citation
 
 Shin, M. (2026). *a11yviz: Accessibility toolkit for ggplot2, plotly,
-and Quarto* (R package version 0.1.3).
+and Quarto* (R package version 0.1.4).
 <https://mshin77.github.io/a11yviz>
 
 Shin, M. (2026). *a11yviz: Accessibility toolkit for plotnine, plotly,
-and Quarto* (Python package version 0.1.3).
+and Quarto* (Python package version 0.1.4).
 <https://github.com/mshin77/a11yviz-py>
 
 # Package index
@@ -122,7 +122,15 @@ Discrete, diverging, and sequential palettes with WCAG metadata
 Multi-criterion figure audit, rubric, and single-aspect checks
 
 - [`a11y_audit()`](https://mshin77.github.io/a11yviz/reference/a11y_audit.md)
-  : Audit a plot against accessibility standards
+  : Chart + document accessibility audit
+- [`a11y_audit_chart()`](https://mshin77.github.io/a11yviz/reference/a11y_audit_chart.md)
+  : Chart-only accessibility audit
+- [`a11y_audit_doc()`](https://mshin77.github.io/a11yviz/reference/a11y_audit_doc.md)
+  : Document-level accessibility audit
+- [`a11y_audit_actionable()`](https://mshin77.github.io/a11yviz/reference/a11y_audit_actionable.md)
+  : Actionable rows from an audit
+- [`a11y_audit_summary()`](https://mshin77.github.io/a11yviz/reference/a11y_audit_summary.md)
+  : One-line summary of an audit
 - [`a11y_rubric()`](https://mshin77.github.io/a11yviz/reference/a11y_rubric.md)
   : WCAG 2.1 rubric for the success criteria a11yviz addresses
 - [`a11y_check_alt_text()`](https://mshin77.github.io/a11yviz/reference/a11y_check_alt_text.md)
@@ -170,11 +178,6 @@ One-shot helpers and resource paths
   : Contents of the accessible CSS
 - [`a11y_wcag_url()`](https://mshin77.github.io/a11yviz/reference/a11y_wcag_url.md)
   : WCAG 2.1 specification URL for a success criterion
-
-## Local playground
-
-Launch the Shiny demo in a local R session
-
 - [`run_app()`](https://mshin77.github.io/a11yviz/reference/run_app.md)
   : Launch the local accessibility playground
 

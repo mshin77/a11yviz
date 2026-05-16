@@ -75,6 +75,10 @@ reference:
   desc:  "Multi-criterion figure audit, rubric, and single-aspect checks"
   contents:
   - a11y_audit
+  - a11y_audit_chart
+  - a11y_audit_doc
+  - a11y_audit_actionable
+  - a11y_audit_summary
   - a11y_rubric
   - a11y_check_alt_text
   - a11y_check_headings
@@ -101,9 +105,5 @@ reference:
   - a11y_css
   - a11y_css_contents
   - a11y_wcag_url
-
-- title: "Local playground"
-  desc:  "Launch the Shiny demo in a local R session"
-  contents:
   - run_app
 

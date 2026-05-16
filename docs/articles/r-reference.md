@@ -55,7 +55,11 @@ Multi-criterion figure audit, rubric, and single-aspect checks.
 
 | Function | Description |
 |----|----|
-| `a11y_audit(p, level = "AA")` | Audit a plot against accessibility standards |
+| `a11y_audit(p, level = "AA")` | Chart + document accessibility audit |
+| `a11y_audit_chart(p, level = "AA")` | Chart-only accessibility audit |
+| `a11y_audit_doc(level = "AA")` | Document-level accessibility audit |
+| `a11y_audit_actionable(audit)` | Actionable rows from an audit |
+| `a11y_audit_summary(audit)` | One-line summary of an audit |
 | `a11y_rubric(level = NULL)` | WCAG 2.1 rubric for the success criteria a11yviz addresses |
 | `a11y_check_alt_text(alt_text, element_type = "image", decorative = FALSE, min_length = 10)` | Check alt-text presence and length (WCAG 1.1.1) |
 | `a11y_check_headings(path, min_chars = 3)` | Check Markdown / Quarto / HTML heading hierarchy and labels |
