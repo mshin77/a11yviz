@@ -8,8 +8,7 @@ against improved.
 
 Edit the code on the left to swap in a different dataset, change
 aesthetics, or tweak the theme — the chart and audit update on the
-right. To load a CSV, paste it into a `pd.read_csv(StringIO("..."))`
-call, or replace `penguins` with any DataFrame already in scope.
+right.
 
 ## Live demo
 
@@ -18,27 +17,23 @@ call, or replace `penguins` with any DataFrame already in scope.
 #|   shinylive does not work in self-contained HTML documents.
 #|   Please set `embed-resources: false` in your metadata.
 #| standalone: true
-#| viewerHeight: 1200
+#| viewerHeight: 720
 #| components: [editor, viewer]
-
-## file: requirements.txt
-shiny
-plotnine
-pandas
-itables
-a11yviz==0.1.4
 
 ## file: app.py
 from shiny import App, ui, render, reactive
 from plotnine import ggplot, aes, geom_point, labs, scale_color_manual, theme
 from plotnine.data import penguins
 import pandas as pd
+import itables
 from itables import to_html_datatable
 from a11yviz import (theme_a11y, a11y_palette, a11y_alt_text,
                      a11y_audit_chart, a11y_audit_actionable)
 
-dt_opts = {"pageLength": 10, "dom": "tip", "scrollX": True,
-           "columnDefs": [{"className": "dt-left", "targets": "_all"}]}
+itables.options.warn_on_undocumented_option = False
+
+dt_kwargs = {"dom": "t",
+             "columnDefs": [{"className": "dt-left", "targets": "_all"}]}
 
 penguins = penguins.dropna()
 
@@ -66,19 +61,26 @@ def improved_plot(level):
     )
 
 panel_css = """
-html, body { height: 100%; }
-.bslib-card { height: 100%; }
-.tab-content { display: flex; flex-direction: column; }
-.tab-pane.active { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; }
-.plot-wrap { flex: 1 1 auto; min-height: 320px; height: clamp(320px, 45vh, 540px); }
-.table-responsive { overflow-x: auto; }
+html, body { height: 100%; background: transparent; font-size: 14px; }
+body, .nav-link, .form-check-label, .control-label, table.dataTable, table.dataTable th, table.dataTable td, table.dataTable > caption, .dataTables_info, .dt-info, .dataTables_paginate, .dt-paging { font-size: 14px !important; }
+.bslib-card, .card { height: 100%; border: 0 !important; box-shadow: none !important; background: transparent !important; }
+.card-body, .bslib-card > .card-body { padding: 0 !important; background: transparent !important; }
+.tab-content { display: flex; flex-direction: column; flex: 1 1 auto !important; min-height: 0; }
+.tab-pane.active { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; overflow: hidden; }
+.plot-wrap { flex: 0 0 320px; height: 320px; overflow: hidden; }
+.table-responsive { flex: 0 0 200px; height: 200px; min-height: 200px; overflow-y: auto; overflow-x: hidden; }
+.dataTables_wrapper, .dt-container { overflow: visible !important; }
 table.dataTable { width: 100% !important; }
-@media (max-width: 768px) {
-  .plot-wrap { min-height: 280px; height: clamp(280px, 40vh, 440px); }
-}
+table.dataTable > caption { caption-side: top; text-align: left; font-weight: 600; color: #1a1a1a; padding: 0.5rem 0 0.25rem; position: sticky; top: 0; background: #fff; z-index: 2; }
 @media (max-width: 576px) {
-  .plot-wrap { min-height: 240px; height: clamp(240px, 35vh, 360px); }
-  table.dataTable td, table.dataTable th { padding: 4px 6px; font-size: 0.85rem; }
+  .plot-wrap { flex: 0 0 220px; height: 220px; }
+  .table-responsive { flex: 0 0 180px; height: 180px; min-height: 180px; }
+  table.dataTable { table-layout: fixed !important; }
+  table.dataTable td, table.dataTable th { padding: 4px 6px; word-wrap: break-word; }
+  table.dataTable th:nth-child(1), table.dataTable td:nth-child(1) { width: 22%; }
+  table.dataTable th:nth-child(2), table.dataTable td:nth-child(2) { width: 50%; }
+  table.dataTable th:nth-child(3), table.dataTable td:nth-child(3) { width: 28%; }
+  table.dataTable th:nth-child(4), table.dataTable td:nth-child(4) { display: none; }
 }
 """
 
@@ -88,24 +90,19 @@ def panel_body(plot_id, audit_id):
             ui.output_plot(plot_id, height="100%", width="100%"),
             class_="plot-wrap",
         ),
-        ui.h2("Audit", class_="h6 mt-3"),
         ui.div(ui.output_ui(audit_id), class_="table-responsive"),
     )
 
-app_ui = ui.page_sidebar(
-    ui.sidebar(
-        ui.input_radio_buttons(
-            "level", "WCAG level:",
-            choices=["AA", "AAA"], selected="AA", inline=True,
-        ),
-        width=240,
-    ),
+app_ui = ui.page_fillable(
     ui.tags.head(ui.tags.style(panel_css)),
-    ui.navset_card_underline(
+    ui.input_radio_buttons(
+        "level", "WCAG level:",
+        choices=["AA", "AAA"], selected="AA", inline=True,
+    ),
+    ui.navset_underline(
         ui.nav_panel("Baseline", panel_body("plot_before", "audit_before")),
         ui.nav_panel("Improved", panel_body("plot_after",  "audit_after")),
     ),
-    fillable=True,
 )
 
 def server(input, output, session):
@@ -132,14 +129,23 @@ def server(input, output, session):
     @render.ui
     def audit_before():
         return ui.HTML(to_html_datatable(actionable_df(base()),
+                                         caption="Audit",
                                          classes="compact stripe hover",
-                                         showIndex=False, dt_args=dt_opts))
+                                         showIndex=False, **dt_kwargs))
 
     @render.ui
     def audit_after():
         return ui.HTML(to_html_datatable(actionable_df(improved()),
+                                         caption="Audit",
                                          classes="compact stripe hover",
-                                         showIndex=False, dt_args=dt_opts))
+                                         showIndex=False, **dt_kwargs))
 
 app = App(app_ui, server)
+
+## file: requirements.txt
+shiny
+plotnine
+pandas
+itables
+a11yviz==0.1.4
 ```

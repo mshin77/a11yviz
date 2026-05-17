@@ -2,7 +2,10 @@
 .Rhistory
 .RData
 .Ruserdata
+.Renviron
 *.Rproj
+
+docs/**/*.map
 
 inst/doc/
 figure/
@@ -15,6 +18,7 @@ _freeze/
 *.quarto_ipynb
 vignettes/*_files/
 vignettes/articles/*_files/
+vignettes/articles/*.html
 
 .DS_Store
 .claude

@@ -18,15 +18,128 @@ vignette: >
 <meta name="shinylive:serviceworker_dir" content=".">
 <script>document.documentElement.classList.add("playground-page");</script>
 <style>
-  .shinylive-container.editor-viewer { gap: 0; }
-  .shinylive-container.editor-viewer > .editor,
-  .shinylive-container .shinylive-editor,
-  .shinylive-container .editor-container { flex: 0 0 33% !important; width: 33% !important; max-width: 33%; min-width: 33%; }
-  .shinylive-container.editor-viewer > .viewer,
-  .shinylive-container .shinylive-viewer,
-  .shinylive-container .shinylive-output-cell,
-  .shinylive-container iframe.app-frame { flex: 1 1 67% !important; width: 67%; }
+  .playground-page main.content.column-page { grid-column: screen-start / screen-end !important; max-width: none !important; width: auto !important; padding-left: 1rem; padding-right: 1rem; }
+  .playground-page .shinylive-container.editor-viewer { width: 100% !important; max-width: none !important; gap: 0 !important; grid-template-areas: "editor viewer" !important; grid-template-rows: clamp(680px, calc(100vh - 320px), 1100px) !important; }
+  .playground-page .shinylive-container.editor-viewer > .ResizableGrid--col-sizer { width: 6px; background: transparent; cursor: col-resize; transition: background-color 120ms; }
+  .playground-page .shinylive-container.editor-viewer > .ResizableGrid--col-sizer:hover,
+  .playground-page .shinylive-container.editor-viewer > .ResizableGrid--col-sizer:focus-visible { background: rgba(27, 110, 194, 0.35); }
+  @media (max-width: 720px) {
+    .playground-page main.content.column-page { padding-left: 0; padding-right: 0; }
+    .playground-page .shinylive-container.editor-viewer { grid-template: "editor" 360px "viewer" 600px / 1fr !important; height: auto !important; }
+    .playground-page .shinylive-container.editor-viewer > .ResizableGrid--col-sizer { display: none; }
+  }
+  .playground-page :focus-visible { outline: 2px solid #1B6EC2; outline-offset: 2px; }
+  .playground-page table.dataTable > caption { color: #1a1a1a; }
+  .playground-page .shinylive-editor .editor-actions .code-run-button.copied-flash { background: rgba(27, 110, 194, 0.18); }
 </style>
+<script>
+  (function () {
+    var label = function () {
+      document.querySelectorAll('iframe.app-frame:not([title])').forEach(function (f) {
+        f.setAttribute('title', 'Shiny app viewer (output panel)');
+      });
+      document.querySelectorAll('.shinylive-viewer:not([aria-label])').forEach(function (v) {
+        v.setAttribute('role', 'group');
+        v.setAttribute('aria-label', 'Shiny app viewer');
+      });
+      document.querySelectorAll('.shinylive-editor:not([aria-label])').forEach(function (e) {
+        e.setAttribute('role', 'group');
+        e.setAttribute('aria-label', 'Code editor');
+      });
+    };
+    if (document.readyState !== 'loading') label();
+    else document.addEventListener('DOMContentLoaded', label);
+    new MutationObserver(label).observe(document.documentElement, { childList: true, subtree: true });
+  })();
+</script>
+<script>
+  (function () {
+    var default_name = 'app.R';
+    var copy_svg = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
+    var dl_svg = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>';
+    var activeText = function (editor) {
+      var scroller = editor.querySelector('.cm-scroller');
+      var content = editor.querySelector('.cm-content');
+      if (!scroller || !content) return Promise.resolve('');
+      var origScroll = scroller.scrollTop;
+      var lines = new Map();
+      var step = Math.max(120, scroller.clientHeight * 0.7);
+      var positions = [];
+      for (var y = 0; y < scroller.scrollHeight; y += step) positions.push(y);
+      positions.push(scroller.scrollHeight);
+      return positions.reduce(function (chain, y) {
+        return chain.then(function () {
+          scroller.scrollTop = y;
+          return new Promise(function (r) { setTimeout(r, 16); });
+        }).then(function () {
+          content.querySelectorAll('.cm-line').forEach(function (l) { lines.set(l.offsetTop, l.textContent); });
+        });
+      }, Promise.resolve()).then(function () {
+        scroller.scrollTop = origScroll;
+        return Array.from(lines.entries()).sort(function (a, b) { return a[0] - b[0]; }).map(function (e) { return e[1]; }).join('\n');
+      });
+    };
+    var activeFilename = function (editor) {
+      var sel = editor.querySelector('.editor-files button.selected .editor-filename');
+      return (sel && sel.textContent.trim()) || default_name;
+    };
+    var flash = function (btn, label) {
+      var prev = btn.getAttribute('aria-label');
+      btn.classList.add('copied-flash');
+      btn.setAttribute('aria-label', label);
+      setTimeout(function () { btn.classList.remove('copied-flash'); btn.setAttribute('aria-label', prev); }, 900);
+    };
+    var enhance = function (editor) {
+      if (editor.dataset.a11yvizEnhanced === '1') return;
+      var actions = editor.querySelector('.editor-actions');
+      if (!actions) return;
+      editor.dataset.a11yvizEnhanced = '1';
+      var copyBtn = document.createElement('button');
+      copyBtn.type = 'button';
+      copyBtn.className = 'code-run-button';
+      copyBtn.setAttribute('aria-label', 'Copy code');
+      copyBtn.innerHTML = copy_svg;
+      copyBtn.addEventListener('click', function () {
+        if (!navigator.clipboard) return;
+        activeText(editor).then(function (text) {
+          if (!text) return;
+          navigator.clipboard.writeText(text).then(function () { flash(copyBtn, 'Copied'); });
+        });
+      });
+      var dlBtn = document.createElement('button');
+      dlBtn.type = 'button';
+      dlBtn.className = 'code-run-button';
+      dlBtn.setAttribute('aria-label', 'Download file');
+      dlBtn.innerHTML = dl_svg;
+      dlBtn.addEventListener('click', function () {
+        activeText(editor).then(function (text) {
+          if (!text) return;
+          var blob = new Blob([text], { type: 'text/plain' });
+          var url = URL.createObjectURL(blob);
+          var a = document.createElement('a');
+          a.href = url; a.download = activeFilename(editor);
+          document.body.appendChild(a); a.click(); a.remove();
+          setTimeout(function () { URL.revokeObjectURL(url); }, 0);
+        });
+      });
+      actions.appendChild(copyBtn);
+      actions.appendChild(dlBtn);
+    };
+    var initCols = function (container) {
+      if (container.dataset.a11yvizCols === '1') return;
+      container.dataset.a11yvizCols = '1';
+      var stacked = window.matchMedia('(max-width: 720px)').matches;
+      container.style.gridTemplateColumns = stacked ? '1fr' : '2fr 3fr';
+    };
+    var sweep = function () {
+      document.querySelectorAll('.shinylive-container.editor-viewer').forEach(initCols);
+      document.querySelectorAll('.shinylive-editor').forEach(enhance);
+    };
+    if (document.readyState !== 'loading') sweep();
+    else document.addEventListener('DOMContentLoaded', sweep);
+    new MutationObserver(sweep).observe(document.documentElement, { childList: true, subtree: true });
+  })();
+</script>
 ```
 
 The same chart rendered with ggplot defaults versus the package's
@@ -37,17 +150,19 @@ baseline against improved.
 
 Edit the code on the left to swap in a different dataset, change
 aesthetics, or tweak the theme — the chart and audit update on the
-right. To load a CSV, paste it into a `read.csv(text = "...")` call,
-or replace `penguins` with any data frame already in scope.
+right.
 
 ## Live demo {.unnumbered}
 
 ::: {role="region" aria-label="Interactive R Shiny demo: baseline vs accessible ggplot, with per-criterion WCAG audit"}
 
 ```{shinylive-r}
+#| label: r-playground
 #| standalone: true
-#| viewerHeight: 900
+#| viewerHeight: 720
 #| components: [editor, viewer]
+
+## file: app.R
 suppressPackageStartupMessages({
   library(shiny)
   library(bslib)
@@ -56,20 +171,22 @@ suppressPackageStartupMessages({
   library(DT)
 })
 
-# inline a11yviz core ---------------------------------------------------------
-a11y_font_size <- function(level) if (level == "AAA") 14 else 12
+# a11yviz core (inlined; webR cannot install the package at runtime) ----------
+`%||%` <- function(a, b) if (is.null(a)) b else a
 
-a11y_palette <- function(level = "AA") {
-  if (level == "AAA")
-    c("#154E8A", "#7C2C5E", "#5C5108", "#8A3A1F", "#2D5C53")
-  else
-    c("#1B9E77", "#D95F02", "#7570B3", "#E7298A",
-      "#66A61E", "#E6AB02", "#A6761D", "#666666")
+a11y_palette <- function(name = "dark2_8", n = NULL) {
+  cols <- switch(name,
+    dark2_8 = c("#1B9E77", "#D95F02", "#7570B3", "#E7298A",
+                "#66A61E", "#E6AB02", "#A6761D", "#666666"),
+    aaa_5   = c("#154E8A", "#7C2C5E", "#5C5108", "#8A3A1F", "#2D5C53"),
+    stop(sprintf("Unknown palette '%s'.", name), call. = FALSE)
+  )
+  if (is.null(n)) cols else cols[seq_len(min(n, length(cols)))]
 }
 
 theme_a11y <- function(level = "AA") {
-  fz <- a11y_font_size(level)
-  fg <- "#222222"; bg <- "#ffffff"; grid <- "#e5e5e5"
+  fz   <- if (level == "AAA") 14 else 12
+  fg   <- "#222222"; bg <- "#ffffff"; grid <- "#e5e5e5"
   ggplot2::theme_minimal(base_size = fz) +
     ggplot2::theme(
       text             = ggplot2::element_text(colour = fg),
@@ -85,24 +202,10 @@ theme_a11y <- function(level = "AA") {
     )
 }
 
-scale_color_a11y <- function(level = "AA") {
-  cols <- a11y_palette(level)
-  ggplot2::discrete_scale("colour", palette = function(n) cols[seq_len(n)])
-}
-
 a11y_alt_text <- function(p, text) {
   attr(p, "alt")      <- text
   attr(p, "a11y_alt") <- text
   p
-}
-
-a11y_audit_actionable <- function(audit)
-  audit[audit$status %in% c("todo", "ok"), , drop = FALSE]
-
-a11y_audit_summary <- function(audit) {
-  todo <- sum(audit$status == "todo")
-  ok   <- sum(audit$status == "ok")
-  sprintf("%d to do, %d ok, %d already handled.", todo, ok, nrow(audit) - todo - ok)
 }
 
 a11y_audit_chart <- function(p, level = "AA") {
@@ -115,114 +218,130 @@ a11y_audit_chart <- function(p, level = "AA") {
   m         <- p$mapping
   has_color     <- !is.null(m$colour) || !is.null(m$fill)
   has_redundant <- !is.null(m$shape)  || !is.null(m$linetype)
-  color_status <- if (!has_color) "n/a" else if (has_redundant) "ok" else "todo"
-  color_note   <- if (!has_color) "no color/fill aesthetic"
-                  else if (has_redundant) "shape or linetype redundantly encodes group"
-                  else "add shape= or linetype= to redundantly encode the group"
   rows <- data.frame(
     criterion = c("1.1.1", "1.4.1", "1.4.3", "1.4.4", "1.4.11", "1.4.13"),
     check = c("Alt text on figure", "Redundant group encoding",
               "Text contrast (Min)",
               sprintf("Recommended text size (%s default)", level),
               "Non-text contrast", "Content on hover or focus"),
-    status = c(if (has_alt) "partial" else "todo",
-               color_status, applied,
-               if (is.numeric(base_size)) (if (text_ok) "ok" else "todo") else "manual",
-               applied, "n/a"),
-    note = c(if (has_alt) "alt stored on figure; emit via the renderer's <img alt>"
-             else "call a11y_alt_text() or a11y_alt_template()",
-             color_note,
-             "theme_a11y() / a11y_layout() set 4.5:1 text on 3:1 non-text",
-             if (is.numeric(base_size))
-               (if (text_ok) sprintf("base size %g pt (min %g pt)", base_size, threshold)
-                else sprintf("base size %g pt; bump to >= %g pt", base_size, threshold))
-             else sprintf("verify text size manually (min %g pt for %s)", threshold, level),
-             "axis lines, gridlines, error bars styled",
-             "ggplot output has no interactive hover tooltips"),
+    status = c(
+      if (has_alt) "partial" else "todo",
+      if (!has_color) "n/a" else if (has_redundant) "ok" else "todo",
+      applied,
+      if (!is.numeric(base_size)) "manual" else if (text_ok) "ok" else "todo",
+      applied,
+      "n/a"
+    ),
+    note = c(
+      if (has_alt) "alt stored on figure; emit via the renderer's <img alt>"
+      else         "call a11y_alt_text() or a11y_alt_template()",
+      if (!has_color)        "no color/fill aesthetic"
+      else if (has_redundant) "shape or linetype redundantly encodes group"
+      else                    "add shape= or linetype= to redundantly encode the group",
+      "theme_a11y() / a11y_layout() set 4.5:1 text on 3:1 non-text",
+      if (!is.numeric(base_size)) sprintf("verify text size manually (min %g pt for %s)", threshold, level)
+      else if (text_ok)           sprintf("base size %g pt (min %g pt)", base_size, threshold)
+      else                        sprintf("base size %g pt; bump to >= %g pt", base_size, threshold),
+      "axis lines, gridlines, error bars styled",
+      "ggplot output has no interactive hover tooltips"
+    ),
     stringsAsFactors = FALSE
   )
   if (level == "AAA")
     rows <- rbind(rows,
-      data.frame(criterion = "1.4.6", check = "Enhanced text contrast (AAA)",
+      data.frame(criterion = "1.4.6", check = "Contrast (Enhanced) - AAA",
                  status = applied, note = "AAA contrast ratios applied",
                  stringsAsFactors = FALSE))
   rows
 }
 
-`%||%` <- function(a, b) if (is.null(a)) b else a
+a11y_audit_actionable <- function(audit)
+  audit[audit$status %in% c("todo", "ok"), , drop = FALSE]
 
 # app -------------------------------------------------------------------------
 penguins <- na.omit(penguins)
-shapes   <- c(16, 17, 18, 15)
+
+base_plot <- function() {
+  ggplot(penguins, aes(flipper_length_mm, body_mass_g, color = species)) +
+    geom_point() +
+    labs(title = "Penguins (default ggplot)")
+}
+
+improved_plot <- function(level) {
+  pal_name <- if (level == "AAA") "aaa_5" else "dark2_8"
+  palette  <- a11y_palette(pal_name, n = nlevels(droplevels(penguins$species)))
+  p <- ggplot(penguins, aes(flipper_length_mm, body_mass_g, color = species)) +
+    geom_point(size = 2, alpha = 0.75) +
+    scale_color_manual(values = palette) +
+    theme_a11y(level = level) +
+    labs(title = "Penguins (theme_a11y + a11y_palette)",
+         x = "Flipper length (mm)", y = "Body mass (g)", color = "Species") +
+    theme(legend.position = "top")
+  a11y_alt_text(p, "Penguin body mass vs flipper length by species, AA accessible.")
+}
+
+panel_css <- "
+html, body { height: 100%; background: transparent; font-size: 14px; }
+body, .nav-link, .form-check-label, .control-label, table.dataTable, table.dataTable th, table.dataTable td, table.dataTable > caption, .dataTables_info, .dt-info, .dataTables_paginate, .dt-paging { font-size: 14px !important; }
+.bslib-card, .card { height: 100%; border: 0 !important; box-shadow: none !important; background: transparent !important; }
+.card-body, .bslib-card > .card-body { padding: 0 !important; background: transparent !important; }
+.tab-content { display: flex; flex-direction: column; flex: 1 1 auto !important; min-height: 0; }
+.tab-pane.active { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; overflow: hidden; }
+.plot-wrap { flex: 0 0 320px; height: 320px; overflow: hidden; }
+.table-responsive { flex: 0 0 200px; height: 200px; min-height: 200px; overflow-y: auto; overflow-x: hidden; }
+.dataTables_wrapper, .dt-container { overflow: visible !important; }
+table.dataTable { width: 100% !important; }
+table.dataTable > caption { caption-side: top; text-align: left; font-weight: 600; color: #1a1a1a; padding: 0.5rem 0 0.25rem; position: sticky; top: 0; background: #fff; z-index: 2; }
+@media (max-width: 576px) {
+  .plot-wrap { flex: 0 0 220px; height: 220px; }
+  .table-responsive { flex: 0 0 180px; height: 180px; min-height: 180px; }
+  table.dataTable { table-layout: fixed !important; }
+  table.dataTable td, table.dataTable th { padding: 4px 6px; word-wrap: break-word; }
+  table.dataTable th:nth-child(1), table.dataTable td:nth-child(1) { width: 22%; }
+  table.dataTable th:nth-child(2), table.dataTable td:nth-child(2) { width: 50%; }
+  table.dataTable th:nth-child(3), table.dataTable td:nth-child(3) { width: 28%; }
+  table.dataTable th:nth-child(4), table.dataTable td:nth-child(4) { display: none; }
+}
+"
 
 panel_body <- function(plot_id, audit_id) {
   tagList(
     div(class = "plot-wrap",
         plotOutput(plot_id, height = "100%", width = "100%")),
-    tags$h2("Audit", class = "h6 mt-3"),
     div(class = "table-responsive", DT::DTOutput(audit_id))
   )
 }
 
 ui <- page_fillable(
-  tags$head(tags$style(HTML("
-    html, body { height: 100%; }
-    .bslib-card { height: 100%; }
-    .tab-content { display: flex; flex-direction: column; }
-    .tab-pane.active { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; }
-    .plot-wrap { flex: 1 1 auto; min-height: 320px; height: clamp(320px, 45vh, 540px); }
-    .table-responsive { overflow-x: auto; }
-    table.dataTable { width: 100% !important; }
-    @media (max-width: 768px) {
-      .plot-wrap { min-height: 280px; height: clamp(280px, 40vh, 440px); }
-    }
-    @media (max-width: 576px) {
-      .plot-wrap { min-height: 240px; height: clamp(240px, 35vh, 360px); }
-      table.dataTable td, table.dataTable th { padding: 4px 6px; font-size: 0.85rem; }
-    }
-  "))),
+  tags$head(tags$style(HTML(panel_css))),
   radioButtons("level", "WCAG level:",
                choices = c("AA", "AAA"), selected = "AA", inline = TRUE),
-  navset_card_underline(
+  navset_underline(
     nav_panel("Baseline", panel_body("plot_before", "audit_before")),
     nav_panel("Improved", panel_body("plot_after",  "audit_after"))
   )
 )
 
-server <- function(input, output) {
-  base_plot <- reactive({
-    ggplot(penguins, aes(flipper_length_mm, body_mass_g, color = species)) +
-      geom_point() +
-      labs(title = "Penguins (default ggplot)")
-  })
+server <- function(input, output, session) {
+  base     <- reactive(base_plot())
+  improved <- reactive(improved_plot(input$level))
 
-  improved_plot <- reactive({
-    p <- ggplot(penguins, aes(flipper_length_mm, body_mass_g, color = species)) +
-      geom_point(size = 2, alpha = 0.75) +
-      scale_color_a11y(level = input$level) +
-      theme_a11y(level = input$level) +
-      labs(title = "Penguins (theme_a11y + scale_color_a11y)",
-           x = "Flipper length (mm)", y = "Body mass (g)", color = "Species") +
-      theme(legend.position = "top")
-    a11y_alt_text(p, "Penguin body mass vs flipper length by species, AA accessible.")
-  })
+  output$plot_before <- renderPlot(base(),     res = 96)
+  output$plot_after  <- renderPlot(improved(), res = 96)
 
-  output$plot_before <- renderPlot(base_plot(),     res = 96)
-  output$plot_after  <- renderPlot(improved_plot(), res = 96)
-
-  audit_opts <- list(pageLength = 10, dom = "tip", scrollX = TRUE,
+  audit_opts <- list(dom = "t",
                      columnDefs = list(list(className = "dt-left", targets = "_all")))
 
-  output$audit_before <- DT::renderDT(
-    a11y_audit_actionable(a11y_audit_chart(base_plot(),     level = input$level)),
-    options = audit_opts, rownames = FALSE,
-    class = "compact stripe hover", selection = "none"
-  )
-  output$audit_after  <- DT::renderDT(
-    a11y_audit_actionable(a11y_audit_chart(improved_plot(), level = input$level)),
-    options = audit_opts, rownames = FALSE,
-    class = "compact stripe hover", selection = "none"
-  )
+  audit_table <- function(p) {
+    DT::datatable(
+      a11y_audit_actionable(a11y_audit_chart(p, level = input$level)),
+      caption = "Audit", options = audit_opts, rownames = FALSE,
+      class = "compact stripe hover", selection = "none"
+    )
+  }
+
+  output$audit_before <- DT::renderDT(audit_table(base()))
+  output$audit_after  <- DT::renderDT(audit_table(improved()))
 }
 
 shinyApp(ui, server)

@@ -8,8 +8,7 @@ against improved.
 
 Edit the code on the left to swap in a different dataset, change
 aesthetics, or tweak the theme — the chart and audit update on the
-right. To load a CSV, paste it into a `read.csv(text = "...")` call, or
-replace `penguins` with any data frame already in scope.
+right.
 
 ## Live demo
 
@@ -18,8 +17,10 @@ replace `penguins` with any data frame already in scope.
 #|   shinylive does not work in self-contained HTML documents.
 #|   Please set `embed-resources: false` in your metadata.
 #| standalone: true
-#| viewerHeight: 1200
+#| viewerHeight: 720
 #| components: [editor, viewer]
+
+## file: app.R
 suppressPackageStartupMessages({
   library(shiny)
   library(bslib)
@@ -28,20 +29,22 @@ suppressPackageStartupMessages({
   library(DT)
 })
 
-# inline a11yviz core ---------------------------------------------------------
-a11y_font_size <- function(level) if (level == "AAA") 14 else 12
+# a11yviz core (inlined; webR cannot install the package at runtime) ----------
+`%||%` <- function(a, b) if (is.null(a)) b else a
 
-a11y_palette <- function(level = "AA") {
-  if (level == "AAA")
-    c("#154E8A", "#7C2C5E", "#5C5108", "#8A3A1F", "#2D5C53")
-  else
-    c("#1B9E77", "#D95F02", "#7570B3", "#E7298A",
-      "#66A61E", "#E6AB02", "#A6761D", "#666666")
+a11y_palette <- function(name = "dark2_8", n = NULL) {
+  cols <- switch(name,
+    dark2_8 = c("#1B9E77", "#D95F02", "#7570B3", "#E7298A",
+                "#66A61E", "#E6AB02", "#A6761D", "#666666"),
+    aaa_5   = c("#154E8A", "#7C2C5E", "#5C5108", "#8A3A1F", "#2D5C53"),
+    stop(sprintf("Unknown palette '%s'.", name), call. = FALSE)
+  )
+  if (is.null(n)) cols else cols[seq_len(min(n, length(cols)))]
 }
 
 theme_a11y <- function(level = "AA") {
-  fz <- a11y_font_size(level)
-  fg <- "#222222"; bg <- "#ffffff"; grid <- "#e5e5e5"
+  fz   <- if (level == "AAA") 14 else 12
+  fg   <- "#222222"; bg <- "#ffffff"; grid <- "#e5e5e5"
   ggplot2::theme_minimal(base_size = fz) +
     ggplot2::theme(
       text             = ggplot2::element_text(colour = fg),
@@ -57,24 +60,10 @@ theme_a11y <- function(level = "AA") {
     )
 }
 
-scale_color_a11y <- function(level = "AA") {
-  cols <- a11y_palette(level)
-  ggplot2::discrete_scale("colour", palette = function(n) cols[seq_len(n)])
-}
-
 a11y_alt_text <- function(p, text) {
   attr(p, "alt")      <- text
   attr(p, "a11y_alt") <- text
   p
-}
-
-a11y_audit_actionable <- function(audit)
-  audit[audit$status %in% c("todo", "ok"), , drop = FALSE]
-
-a11y_audit_summary <- function(audit) {
-  todo <- sum(audit$status == "todo")
-  ok   <- sum(audit$status == "ok")
-  sprintf("%d to do, %d ok, %d already handled.", todo, ok, nrow(audit) - todo - ok)
 }
 
 a11y_audit_chart <- function(p, level = "AA") {
@@ -87,30 +76,33 @@ a11y_audit_chart <- function(p, level = "AA") {
   m         <- p$mapping
   has_color     <- !is.null(m$colour) || !is.null(m$fill)
   has_redundant <- !is.null(m$shape)  || !is.null(m$linetype)
-  color_status <- if (!has_color) "n/a" else if (has_redundant) "ok" else "todo"
-  color_note   <- if (!has_color) "no color/fill aesthetic"
-                  else if (has_redundant) "shape or linetype redundantly encodes group"
-                  else "add shape= or linetype= to redundantly encode the group"
   rows <- data.frame(
     criterion = c("1.1.1", "1.4.1", "1.4.3", "1.4.4", "1.4.11", "1.4.13"),
     check = c("Alt text on figure", "Redundant group encoding",
               "Text contrast (Min)",
               sprintf("Recommended text size (%s default)", level),
               "Non-text contrast", "Content on hover or focus"),
-    status = c(if (has_alt) "partial" else "todo",
-               color_status, applied,
-               if (is.numeric(base_size)) (if (text_ok) "ok" else "todo") else "manual",
-               applied, "n/a"),
-    note = c(if (has_alt) "alt stored on figure; emit via the renderer's <img alt>"
-             else "call a11y_alt_text() or a11y_alt_template()",
-             color_note,
-             "theme_a11y() / a11y_layout() set 4.5:1 text on 3:1 non-text",
-             if (is.numeric(base_size))
-               (if (text_ok) sprintf("base size %g pt (min %g pt)", base_size, threshold)
-                else sprintf("base size %g pt; bump to >= %g pt", base_size, threshold))
-             else sprintf("verify text size manually (min %g pt for %s)", threshold, level),
-             "axis lines, gridlines, error bars styled",
-             "ggplot output has no interactive hover tooltips"),
+    status = c(
+      if (has_alt) "partial" else "todo",
+      if (!has_color) "n/a" else if (has_redundant) "ok" else "todo",
+      applied,
+      if (!is.numeric(base_size)) "manual" else if (text_ok) "ok" else "todo",
+      applied,
+      "n/a"
+    ),
+    note = c(
+      if (has_alt) "alt stored on figure; emit via the renderer's <img alt>"
+      else         "call a11y_alt_text() or a11y_alt_template()",
+      if (!has_color)        "no color/fill aesthetic"
+      else if (has_redundant) "shape or linetype redundantly encodes group"
+      else                    "add shape= or linetype= to redundantly encode the group",
+      "theme_a11y() / a11y_layout() set 4.5:1 text on 3:1 non-text",
+      if (!is.numeric(base_size)) sprintf("verify text size manually (min %g pt for %s)", threshold, level)
+      else if (text_ok)           sprintf("base size %g pt (min %g pt)", base_size, threshold)
+      else                        sprintf("base size %g pt; bump to >= %g pt", base_size, threshold),
+      "axis lines, gridlines, error bars styled",
+      "ggplot output has no interactive hover tooltips"
+    ),
     stringsAsFactors = FALSE
   )
   if (level == "AAA")
@@ -121,83 +113,93 @@ a11y_audit_chart <- function(p, level = "AA") {
   rows
 }
 
-`%||%` <- function(a, b) if (is.null(a)) b else a
+a11y_audit_actionable <- function(audit)
+  audit[audit$status %in% c("todo", "ok"), , drop = FALSE]
 
 # app -------------------------------------------------------------------------
 penguins <- na.omit(penguins)
-shapes   <- c(16, 17, 18, 15)
+
+base_plot <- function() {
+  ggplot(penguins, aes(flipper_length_mm, body_mass_g, color = species)) +
+    geom_point() +
+    labs(title = "Penguins (default ggplot)")
+}
+
+improved_plot <- function(level) {
+  pal_name <- if (level == "AAA") "aaa_5" else "dark2_8"
+  palette  <- a11y_palette(pal_name, n = nlevels(droplevels(penguins$species)))
+  p <- ggplot(penguins, aes(flipper_length_mm, body_mass_g, color = species)) +
+    geom_point(size = 2, alpha = 0.75) +
+    scale_color_manual(values = palette) +
+    theme_a11y(level = level) +
+    labs(title = "Penguins (theme_a11y + a11y_palette)",
+         x = "Flipper length (mm)", y = "Body mass (g)", color = "Species") +
+    theme(legend.position = "top")
+  a11y_alt_text(p, "Penguin body mass vs flipper length by species, AA accessible.")
+}
+
+panel_css <- "
+html, body { height: 100%; background: transparent; font-size: 14px; }
+body, .nav-link, .form-check-label, .control-label, table.dataTable, table.dataTable th, table.dataTable td, table.dataTable > caption, .dataTables_info, .dt-info, .dataTables_paginate, .dt-paging { font-size: 14px !important; }
+.bslib-card, .card { height: 100%; border: 0 !important; box-shadow: none !important; background: transparent !important; }
+.card-body, .bslib-card > .card-body { padding: 0 !important; background: transparent !important; }
+.tab-content { display: flex; flex-direction: column; flex: 1 1 auto !important; min-height: 0; }
+.tab-pane.active { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; overflow: hidden; }
+.plot-wrap { flex: 0 0 320px; height: 320px; overflow: hidden; }
+.table-responsive { flex: 0 0 200px; height: 200px; min-height: 200px; overflow-y: auto; overflow-x: hidden; }
+.dataTables_wrapper, .dt-container { overflow: visible !important; }
+table.dataTable { width: 100% !important; }
+table.dataTable > caption { caption-side: top; text-align: left; font-weight: 600; color: #1a1a1a; padding: 0.5rem 0 0.25rem; position: sticky; top: 0; background: #fff; z-index: 2; }
+@media (max-width: 576px) {
+  .plot-wrap { flex: 0 0 220px; height: 220px; }
+  .table-responsive { flex: 0 0 180px; height: 180px; min-height: 180px; }
+  table.dataTable { table-layout: fixed !important; }
+  table.dataTable td, table.dataTable th { padding: 4px 6px; word-wrap: break-word; }
+  table.dataTable th:nth-child(1), table.dataTable td:nth-child(1) { width: 22%; }
+  table.dataTable th:nth-child(2), table.dataTable td:nth-child(2) { width: 50%; }
+  table.dataTable th:nth-child(3), table.dataTable td:nth-child(3) { width: 28%; }
+  table.dataTable th:nth-child(4), table.dataTable td:nth-child(4) { display: none; }
+}
+"
 
 panel_body <- function(plot_id, audit_id) {
   tagList(
     div(class = "plot-wrap",
         plotOutput(plot_id, height = "100%", width = "100%")),
-    tags$h2("Audit", class = "h6 mt-3"),
     div(class = "table-responsive", DT::DTOutput(audit_id))
   )
 }
 
-ui <- page_sidebar(
-  fillable = TRUE,
-  sidebar  = sidebar(width = 240,
-    radioButtons("level", "WCAG level:",
-                 choices = c("AA", "AAA"), selected = "AA", inline = TRUE)
-  ),
-  tags$head(tags$style(HTML("
-    html, body { height: 100%; }
-    .bslib-card { height: 100%; }
-    .tab-content { display: flex; flex-direction: column; }
-    .tab-pane.active { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; }
-    .plot-wrap { flex: 1 1 auto; min-height: 320px; height: clamp(320px, 45vh, 540px); }
-    .table-responsive { overflow-x: auto; }
-    table.dataTable { width: 100% !important; }
-    @media (max-width: 768px) {
-      .plot-wrap { min-height: 280px; height: clamp(280px, 40vh, 440px); }
-    }
-    @media (max-width: 576px) {
-      .plot-wrap { min-height: 240px; height: clamp(240px, 35vh, 360px); }
-      table.dataTable td, table.dataTable th { padding: 4px 6px; font-size: 0.85rem; }
-    }
-  "))),
-  navset_card_underline(
+ui <- page_fillable(
+  tags$head(tags$style(HTML(panel_css))),
+  radioButtons("level", "WCAG level:",
+               choices = c("AA", "AAA"), selected = "AA", inline = TRUE),
+  navset_underline(
     nav_panel("Baseline", panel_body("plot_before", "audit_before")),
     nav_panel("Improved", panel_body("plot_after",  "audit_after"))
   )
 )
 
-server <- function(input, output) {
-  base_plot <- reactive({
-    ggplot(penguins, aes(flipper_length_mm, body_mass_g, color = species)) +
-      geom_point() +
-      labs(title = "Penguins (default ggplot)")
-  })
+server <- function(input, output, session) {
+  base     <- reactive(base_plot())
+  improved <- reactive(improved_plot(input$level))
 
-  improved_plot <- reactive({
-    p <- ggplot(penguins, aes(flipper_length_mm, body_mass_g, color = species)) +
-      geom_point(size = 2, alpha = 0.75) +
-      scale_color_a11y(level = input$level) +
-      theme_a11y(level = input$level) +
-      labs(title = "Penguins (theme_a11y + scale_color_a11y)",
-           x = "Flipper length (mm)", y = "Body mass (g)", color = "Species") +
-      theme(legend.position = "top")
-    a11y_alt_text(p, "Penguin body mass vs flipper length by species, AA accessible.")
-  })
+  output$plot_before <- renderPlot(base(),     res = 96)
+  output$plot_after  <- renderPlot(improved(), res = 96)
 
-  output$plot_before <- renderPlot(base_plot(),     res = 96)
-  output$plot_after  <- renderPlot(improved_plot(), res = 96)
-
-  audit_opts <- list(pageLength = 10, dom = "tip", scrollX = TRUE,
+  audit_opts <- list(dom = "t",
                      columnDefs = list(list(className = "dt-left", targets = "_all")))
 
-  output$audit_before <- DT::renderDT(
-    a11y_audit_actionable(a11y_audit_chart(base_plot(),     level = input$level)),
-    options = audit_opts, rownames = FALSE,
-    class = "compact stripe hover", selection = "none"
-  )
-  output$audit_after  <- DT::renderDT(
-    a11y_audit_actionable(a11y_audit_chart(improved_plot(), level = input$level)),
-    options = audit_opts, rownames = FALSE,
-    class = "compact stripe hover", selection = "none"
-  )
+  audit_table <- function(p) {
+    DT::datatable(
+      a11y_audit_actionable(a11y_audit_chart(p, level = input$level)),
+      caption = "Audit", options = audit_opts, rownames = FALSE,
+      class = "compact stripe hover", selection = "none"
+    )
+  }
+
+  output$audit_before <- DT::renderDT(audit_table(base()))
+  output$audit_after  <- DT::renderDT(audit_table(improved()))
 }
 
 shinyApp(ui, server)
