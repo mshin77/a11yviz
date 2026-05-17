@@ -16,20 +16,84 @@ right.
 #| '!! shinylive warning !!': |
 #|   shinylive does not work in self-contained HTML documents.
 #|   Please set `embed-resources: false` in your metadata.
+#| label: r-playground
 #| standalone: true
 #| viewerHeight: 720
 #| components: [editor, viewer]
 
 ## file: app.R
 suppressPackageStartupMessages({
-  library(shiny)
-  library(bslib)
-  library(ggplot2)
-  library(palmerpenguins)
-  library(DT)
+  library(shiny); library(bslib); library(ggplot2)
+  library(palmerpenguins); library(DT)
 })
+source("helpers.R")
+panel_css <- paste(readLines("styles.css", warn = FALSE), collapse = "\n")
 
-# a11yviz core (inlined; webR cannot install the package at runtime) ----------
+penguins <- na.omit(penguins)
+
+base_plot <- function() {
+  ggplot(penguins, aes(flipper_length_mm, body_mass_g, color = species)) +
+    geom_point() +
+    labs(title = "Penguins (default ggplot)")
+}
+
+improved_plot <- function(level) {
+  pal_name <- if (level == "AAA") "aaa_5" else "dark2_8"
+  palette  <- a11y_palette(pal_name, n = nlevels(droplevels(penguins$species)))
+  p <- ggplot(penguins, aes(flipper_length_mm, body_mass_g, color = species)) +
+    geom_point(size = 2, alpha = 0.75) +
+    scale_color_manual(values = palette) +
+    theme_a11y(level = level) +
+    labs(title = "Penguins (theme_a11y + a11y_palette)",
+         x = "Flipper length (mm)", y = "Body mass (g)", color = "Species") +
+    theme(legend.position = "top")
+  a11y_alt_text(p, "Penguin body mass vs flipper length by species, AA accessible.")
+}
+
+panel_body <- function(plot_id, audit_id) {
+  tagList(
+    div(class = "plot-wrap",
+        plotOutput(plot_id, height = "100%", width = "100%")),
+    div(class = "table-responsive", DT::DTOutput(audit_id))
+  )
+}
+
+ui <- page_fillable(
+  tags$head(tags$style(HTML(panel_css))),
+  radioButtons("level", "WCAG level:",
+               choices = c("AA", "AAA"), selected = "AA", inline = TRUE),
+  navset_underline(
+    nav_panel("Baseline", panel_body("plot_before", "audit_before")),
+    nav_panel("Improved", panel_body("plot_after",  "audit_after"))
+  )
+)
+
+server <- function(input, output, session) {
+  base     <- reactive(base_plot())
+  improved <- reactive(improved_plot(input$level))
+
+  output$plot_before <- renderPlot(base(),     res = 96)
+  output$plot_after  <- renderPlot(improved(), res = 96)
+
+  audit_opts <- list(dom = "t", ordering = FALSE,
+                     columnDefs = list(list(className = "dt-left", targets = "_all")))
+
+  audit_table <- function(p) {
+    DT::datatable(
+      a11y_audit_actionable(a11y_audit_chart(p, level = input$level)),
+      caption = "Audit", options = audit_opts, rownames = FALSE,
+      class = "compact stripe hover", selection = "none"
+    )
+  }
+
+  output$audit_before <- DT::renderDT(audit_table(base()))
+  output$audit_after  <- DT::renderDT(audit_table(improved()))
+}
+
+shinyApp(ui, server)
+
+## file: helpers.R
+# a11yviz core (inlined; webR cannot install the package at runtime).
 `%||%` <- function(a, b) if (is.null(a)) b else a
 
 a11y_palette <- function(name = "dark2_8", n = NULL) {
@@ -116,29 +180,7 @@ a11y_audit_chart <- function(p, level = "AA") {
 a11y_audit_actionable <- function(audit)
   audit[audit$status %in% c("todo", "ok"), , drop = FALSE]
 
-# app -------------------------------------------------------------------------
-penguins <- na.omit(penguins)
-
-base_plot <- function() {
-  ggplot(penguins, aes(flipper_length_mm, body_mass_g, color = species)) +
-    geom_point() +
-    labs(title = "Penguins (default ggplot)")
-}
-
-improved_plot <- function(level) {
-  pal_name <- if (level == "AAA") "aaa_5" else "dark2_8"
-  palette  <- a11y_palette(pal_name, n = nlevels(droplevels(penguins$species)))
-  p <- ggplot(penguins, aes(flipper_length_mm, body_mass_g, color = species)) +
-    geom_point(size = 2, alpha = 0.75) +
-    scale_color_manual(values = palette) +
-    theme_a11y(level = level) +
-    labs(title = "Penguins (theme_a11y + a11y_palette)",
-         x = "Flipper length (mm)", y = "Body mass (g)", color = "Species") +
-    theme(legend.position = "top")
-  a11y_alt_text(p, "Penguin body mass vs flipper length by species, AA accessible.")
-}
-
-panel_css <- "
+## file: styles.css
 html, body { height: 100%; background: transparent; font-size: 14px; }
 body, .nav-link, .form-check-label, .control-label, table.dataTable, table.dataTable th, table.dataTable td, table.dataTable > caption, .dataTables_info, .dt-info, .dataTables_paginate, .dt-paging { font-size: 14px !important; }
 .bslib-card, .card { height: 100%; border: 0 !important; box-shadow: none !important; background: transparent !important; }
@@ -160,47 +202,4 @@ table.dataTable > caption { caption-side: top; text-align: left; font-weight: 60
   table.dataTable th:nth-child(3), table.dataTable td:nth-child(3) { width: 28%; }
   table.dataTable th:nth-child(4), table.dataTable td:nth-child(4) { display: none; }
 }
-"
-
-panel_body <- function(plot_id, audit_id) {
-  tagList(
-    div(class = "plot-wrap",
-        plotOutput(plot_id, height = "100%", width = "100%")),
-    div(class = "table-responsive", DT::DTOutput(audit_id))
-  )
-}
-
-ui <- page_fillable(
-  tags$head(tags$style(HTML(panel_css))),
-  radioButtons("level", "WCAG level:",
-               choices = c("AA", "AAA"), selected = "AA", inline = TRUE),
-  navset_underline(
-    nav_panel("Baseline", panel_body("plot_before", "audit_before")),
-    nav_panel("Improved", panel_body("plot_after",  "audit_after"))
-  )
-)
-
-server <- function(input, output, session) {
-  base     <- reactive(base_plot())
-  improved <- reactive(improved_plot(input$level))
-
-  output$plot_before <- renderPlot(base(),     res = 96)
-  output$plot_after  <- renderPlot(improved(), res = 96)
-
-  audit_opts <- list(dom = "t",
-                     columnDefs = list(list(className = "dt-left", targets = "_all")))
-
-  audit_table <- function(p) {
-    DT::datatable(
-      a11y_audit_actionable(a11y_audit_chart(p, level = input$level)),
-      caption = "Audit", options = audit_opts, rownames = FALSE,
-      class = "compact stripe hover", selection = "none"
-    )
-  }
-
-  output$audit_before <- DT::renderDT(audit_table(base()))
-  output$audit_after  <- DT::renderDT(audit_table(improved()))
-}
-
-shinyApp(ui, server)
 ```

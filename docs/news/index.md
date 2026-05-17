@@ -1,10 +1,5 @@
 # Changelog
 
-## a11yviz 0.1.5
-
-- Interactive playgrounds load a newer browser viewer.
-- Cleaner R walkthrough page that mirrors the Python one.
-
 ## a11yviz 0.1.4
 
 - Split the audit into chart and document parts for shorter tables.
