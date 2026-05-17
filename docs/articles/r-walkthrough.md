@@ -194,7 +194,7 @@ body, .nav-link, .form-check-label, .control-label, table.dataTable, table.dataT
 .dataTables_wrapper, .dt-container { overflow: visible !important; }
 table.dataTable { width: 100% !important; }
 table.dataTable > caption { caption-side: top; text-align: left; font-weight: 600; color: #1a1a1a; padding: 0.5rem 0 0.25rem; position: sticky; top: 0; background: #fff; z-index: 2; }
-table.dataTable.hover tbody tr:hover, table.dataTable.hover tbody tr:hover > td, table.dataTable.hover tbody tr:hover > th { background-color: transparent !important; }
+table.dataTable.hover > tbody > tr:hover > *, table.dataTable.hover tbody tr:hover > *, table.dataTable.hover tbody tr:hover, table.dataTable.display > tbody > tr:hover > *, table.dataTable.display tbody tr:hover > *, table.dataTable.display tbody tr:hover { box-shadow: inset 0 0 0 9999px rgba(0,0,0,.035) !important; background-color: transparent !important; }
 .nav-underline .nav-link:hover, .nav-underline .nav-link:focus { border-bottom-color: transparent !important; color: inherit !important; }
 .form-check:hover, .form-check-input:hover { background-color: transparent !important; }
 @media (max-width: 576px) {
