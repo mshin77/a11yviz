@@ -163,6 +163,7 @@ right.
 #| components: [editor, viewer]
 
 ## file: app.py
+from pathlib import Path
 from shiny import App, ui, render, reactive
 from plotnine import ggplot, aes, geom_point, labs, scale_color_manual, theme
 from plotnine.data import penguins
@@ -174,8 +175,7 @@ from a11yviz import (theme_a11y, a11y_palette, a11y_alt_text,
 
 itables.options.warn_on_undocumented_option = False
 
-with open("styles.css") as f:
-    panel_css = f.read()
+panel_css = (Path(__file__).parent / "styles.css").read_text()
 
 dt_kwargs = {"dom": "t", "ordering": False,
              "columnDefs": [{"className": "dt-left", "targets": "_all"}]}
@@ -243,23 +243,20 @@ def server(input, output, session):
     def plot_after():
         return improved()
 
-    def actionable_df(p):
+    def audit_table(p):
         rows = a11y_audit_actionable(a11y_audit_chart(p, level=input.level()))
-        return pd.DataFrame(rows)
+        return ui.HTML(to_html_datatable(
+            pd.DataFrame(rows),
+            caption="Audit", classes="compact stripe hover",
+            showIndex=False, **dt_kwargs))
 
     @render.ui
     def audit_before():
-        return ui.HTML(to_html_datatable(actionable_df(base()),
-                                         caption="Audit",
-                                         classes="compact stripe hover",
-                                         showIndex=False, **dt_kwargs))
+        return audit_table(base())
 
     @render.ui
     def audit_after():
-        return ui.HTML(to_html_datatable(actionable_df(improved()),
-                                         caption="Audit",
-                                         classes="compact stripe hover",
-                                         showIndex=False, **dt_kwargs))
+        return audit_table(improved())
 
 app = App(app_ui, server)
 

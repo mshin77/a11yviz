@@ -238,8 +238,10 @@ suppressPackageStartupMessages({
   library(shiny); library(bslib); library(ggplot2)
   library(palmerpenguins); library(DT)
 })
-source("helpers.R")
-panel_css &lt;- paste(readLines("styles.css", warn = FALSE), collapse = "\n")
+app_dir   &lt;- if (is.null(sys.frame(1)$ofile)) "." else dirname(sys.frame(1)$ofile)
+source(file.path(app_dir, "helpers.R"))
+panel_css &lt;- paste(readLines(file.path(app_dir, "styles.css"), warn = FALSE),
+                   collapse = "\n")
 
 penguins &lt;- na.omit(penguins)
 
