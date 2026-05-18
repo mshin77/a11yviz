@@ -4,7 +4,7 @@ The same chart rendered with ggplot defaults versus the package’s
 accessible theme, palette, and alt text. Toggle the WCAG level to see
 contrast and font thresholds shift; the audit table reports
 per-criterion status for each version. Switch tabs to compare baseline
-against improved.
+against accessible.
 
 Edit the code on the left to swap in a different dataset, change
 aesthetics, or tweak the theme — the chart and audit update on the
@@ -21,17 +21,12 @@ right.
 #| viewerHeight: 720
 #| components: [editor, viewer]
 
-## file: app.R
-suppressPackageStartupMessages({
-  library(shiny); library(bslib); library(ggplot2)
-  library(palmerpenguins); library(DT)
-})
-app_dir   <- if (is.null(sys.frame(1)$ofile)) "." else dirname(sys.frame(1)$ofile)
-source(file.path(app_dir, "helpers.R"))
-panel_css <- paste(readLines(file.path(app_dir, "styles.css"), warn = FALSE),
-                   collapse = "\n")
+## file: chart.R
+# Edit the chart. Re-run (Ctrl+Shift+Enter) to update both panels and the audit.
 
-penguins <- na.omit(penguins)
+penguins  <- na.omit(palmerpenguins::penguins)
+centroids <- aggregate(cbind(flipper_length_mm, body_mass_g) ~ species,
+                       data = penguins, mean)
 
 base_plot <- function() {
   ggplot(penguins, aes(flipper_length_mm, body_mass_g, color = species)) +
@@ -39,18 +34,35 @@ base_plot <- function() {
     labs(title = "Penguins (default ggplot)")
 }
 
-improved_plot <- function(level) {
+a11y_plot <- function(level) {
   pal_name <- if (level == "AAA") "aaa_5" else "dark2_8"
   palette  <- a11y_palette(pal_name, n = nlevels(droplevels(penguins$species)))
   p <- ggplot(penguins, aes(flipper_length_mm, body_mass_g, color = species)) +
     geom_point(size = 2, alpha = 0.75) +
     scale_color_manual(values = palette) +
+    geom_text(data = centroids, aes(label = species),
+              color = "black", size = 4, fontface = "bold",
+              show.legend = FALSE) +
     theme_a11y(level = level) +
     labs(title = "Penguins (theme_a11y + a11y_palette)",
          x = "Flipper length (mm)", y = "Body mass (g)", color = "Species") +
     theme(legend.position = "top")
   a11y_alt_text(p, "Penguin body mass vs flipper length by species, AA accessible.")
 }
+
+## file: app.R
+suppressPackageStartupMessages({
+  library(shiny); library(bslib); library(ggplot2)
+  library(palmerpenguins); library(DT)
+})
+app_dir <- if (is.null(sys.frame(1)$ofile)) "." else dirname(sys.frame(1)$ofile)
+source(file.path(app_dir, "helpers.R"))
+source(file.path(app_dir, "chart.R"))
+panel_css <- paste(readLines(file.path(app_dir, "styles.css"), warn = FALSE),
+                   collapse = "\n")
+
+audit_opts <- list(dom = "t", ordering = FALSE,
+                   columnDefs = list(list(className = "dt-left", targets = "_all")))
 
 panel_body <- function(plot_id, audit_id) {
   tagList(
@@ -60,39 +72,37 @@ panel_body <- function(plot_id, audit_id) {
   )
 }
 
-ui <- page_fillable(
+app_ui <- page_fillable(
   tags$head(tags$style(HTML(panel_css))),
   radioButtons("level", "WCAG level:",
                choices = c("AA", "AAA"), selected = "AA", inline = TRUE),
   navset_underline(
     nav_panel("Baseline", panel_body("plot_before", "audit_before")),
-    nav_panel("Improved", panel_body("plot_after",  "audit_after"))
+    nav_panel("Accessible", panel_body("plot_after",  "audit_after"))
   )
 )
 
 server <- function(input, output, session) {
-  base     <- reactive(base_plot())
-  improved <- reactive(improved_plot(input$level))
+  base       <- reactive(base_plot())
+  accessible <- reactive(a11y_plot(input$level))
 
-  output$plot_before <- renderPlot(base(),     res = 96)
-  output$plot_after  <- renderPlot(improved(), res = 96)
-
-  audit_opts <- list(dom = "t", ordering = FALSE,
-                     columnDefs = list(list(className = "dt-left", targets = "_all")))
+  output$plot_before <- renderPlot(base(),       res = 96)
+  output$plot_after  <- renderPlot(accessible(), res = 96)
 
   audit_table <- function(p) {
+    rows <- a11y_audit_actionable(a11y_audit_chart(p, level = input$level))
     DT::datatable(
-      a11y_audit_actionable(a11y_audit_chart(p, level = input$level)),
+      rows,
       caption = "Audit", options = audit_opts, rownames = FALSE,
       class = "compact stripe hover", selection = "none"
     )
   }
 
   output$audit_before <- DT::renderDT(audit_table(base()))
-  output$audit_after  <- DT::renderDT(audit_table(improved()))
+  output$audit_after  <- DT::renderDT(audit_table(accessible()))
 }
 
-shinyApp(ui, server)
+shinyApp(app_ui, server)
 
 ## file: helpers.R
 # a11yviz core (inlined; webR cannot install the package at runtime).
@@ -161,7 +171,7 @@ a11y_audit_chart <- function(p, level = "AA") {
       else         "call a11y_alt_text() or a11y_alt_template()",
       if (!has_color)        "no color/fill aesthetic"
       else if (has_redundant) "shape or linetype redundantly encodes group"
-      else                    "add shape= or linetype= to redundantly encode the group",
+      else                    "add direct group labels (geom_text at cluster centroids), facet by group, or aes(shape=) / aes(linetype=) to redundantly encode the group",
       "theme_a11y() / a11y_layout() set 4.5:1 text on 3:1 non-text",
       if (!is.numeric(base_size)) sprintf("verify text size manually (min %g pt for %s)", threshold, level)
       else if (text_ok)           sprintf("base size %g pt (min %g pt)", base_size, threshold)
@@ -173,7 +183,7 @@ a11y_audit_chart <- function(p, level = "AA") {
   )
   if (level == "AAA")
     rows <- rbind(rows,
-      data.frame(criterion = "1.4.6", check = "Enhanced text contrast (AAA)",
+      data.frame(criterion = "1.4.6", check = "AAA text contrast",
                  status = applied, note = "AAA contrast ratios applied",
                  stringsAsFactors = FALSE))
   rows

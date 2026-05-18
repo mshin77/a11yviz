@@ -31,7 +31,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">a11yviz</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.1.4</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.1.5</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -171,11 +171,11 @@
       btn.setAttribute('aria-label', label);
       setTimeout(function () { btn.classList.remove('copied-flash'); btn.setAttribute('aria-label', prev); }, 900);
     };
-    var enhance = function (editor) {
-      if (editor.dataset.a11yvizEnhanced === '1') return;
+    var addButtons = function (editor) {
+      if (editor.dataset.a11yvizButtonsAdded === '1') return;
       var actions = editor.querySelector('.editor-actions');
       if (!actions) return;
-      editor.dataset.a11yvizEnhanced = '1';
+      editor.dataset.a11yvizButtonsAdded = '1';
       var copyBtn = document.createElement('button');
       copyBtn.type = 'button';
       copyBtn.className = 'code-run-button';
@@ -215,13 +215,13 @@
     };
     var sweep = function () {
       document.querySelectorAll('.shinylive-container.editor-viewer').forEach(initCols);
-      document.querySelectorAll('.shinylive-editor').forEach(enhance);
+      document.querySelectorAll('.shinylive-editor').forEach(addButtons);
     };
     if (document.readyState !== 'loading') sweep();
     else document.addEventListener('DOMContentLoaded', sweep);
     new MutationObserver(sweep).observe(document.documentElement, { childList: true, subtree: true });
   })();
-</script><p>The same chart rendered with plotnine defaults versus the package’s accessible theme, palette, and alt text. Toggle the WCAG level to see contrast and font thresholds shift; the audit table reports per-criterion status for each version. Switch tabs to compare baseline against improved.</p>
+</script><p>The same chart rendered with plotnine defaults versus the package’s accessible theme, palette, and alt text. Toggle the WCAG level to see contrast and font thresholds shift; the audit table reports per-criterion status for each version. Switch tabs to compare baseline against accessible.</p>
 <p>Edit the code on the left to swap in a different dataset, change aesthetics, or tweak the theme — the chart and audit update on the right.</p>
 <section class="level2 unnumbered"><h2 class="unnumbered" id="live-demo">Live demo<a class="anchor" aria-label="anchor" href="#live-demo"></a>
 </h2>
@@ -234,25 +234,19 @@
 #| viewerHeight: 720
 #| components: [editor, viewer]
 
-## file: app.py
-from pathlib import Path
-from shiny import App, ui, render, reactive
-from plotnine import ggplot, aes, geom_point, labs, scale_color_manual, theme
+## file: chart.py
+# Edit the chart. Re-run (Ctrl+Shift+Enter) to update both panels and the audit.
+
+from plotnine import (ggplot, aes, geom_point, geom_text, labs,
+                      scale_color_manual, theme)
 from plotnine.data import penguins
-import pandas as pd
-import itables
-from itables import to_html_datatable
-from a11yviz import (theme_a11y, a11y_palette, a11y_alt_text,
-                     a11y_audit_chart, a11y_audit_actionable)
+from a11yviz import a11y_palette, theme_a11y, a11y_alt_text
 
-itables.options.warn_on_undocumented_option = False
-
-panel_css = (Path(__file__).parent / "styles.css").read_text()
-
-dt_kwargs = {"dom": "t", "ordering": False,
-             "columnDefs": [{"className": "dt-left", "targets": "_all"}]}
-
-penguins = penguins.dropna()
+penguins  = penguins.dropna()
+centroids = penguins.groupby("species", as_index=False).agg(
+    flipper_length_mm=("flipper_length_mm", "mean"),
+    body_mass_g=("body_mass_g", "mean"),
+)
 
 def base_plot():
     return (
@@ -261,12 +255,16 @@ def base_plot():
         + labs(title="Penguins (default plotnine)")
     )
 
-def improved_plot(level):
-    palette = a11y_palette("dark2_8", n=penguins["species"].nunique())
+def a11y_plot(level):
+    pal_name = "aaa_5" if level == "AAA" else "dark2_8"
+    palette = a11y_palette(pal_name, n=penguins["species"].nunique())
     p = (
         ggplot(penguins, aes("flipper_length_mm", "body_mass_g", color="species"))
         + geom_point(size=2, alpha=0.75)
         + scale_color_manual(values=palette)
+        + geom_text(data=centroids, mapping=aes(label="species"),
+                    color="black", size=10, fontweight="bold",
+                    show_legend=False)
         + theme_a11y(level=level)
         + labs(title="Penguins (theme_a11y + a11y_palette)",
                x="Flipper length (mm)", y="Body mass (g)", color="Species")
@@ -276,6 +274,24 @@ def improved_plot(level):
         p,
         "Penguin body mass vs flipper length by species, AA accessible.",
     )
+
+## file: app.py
+from pathlib import Path
+from shiny import App, ui, render, reactive
+import pandas as pd
+import itables
+from itables import to_html_datatable
+from a11yviz import a11y_audit_chart, a11y_audit_actionable
+
+from chart import base_plot, a11y_plot
+
+itables.options.warn_on_undocumented_option = False
+
+app_dir   = Path(__file__).parent
+panel_css = (app_dir / "styles.css").read_text()
+
+audit_opts = {"dom": "t", "ordering": False,
+              "columnDefs": [{"className": "dt-left", "targets": "_all"}]}
 
 def panel_body(plot_id, audit_id):
     return ui.TagList(
@@ -294,7 +310,7 @@ app_ui = ui.page_fillable(
     ),
     ui.navset_underline(
         ui.nav_panel("Baseline", panel_body("plot_before", "audit_before")),
-        ui.nav_panel("Improved", panel_body("plot_after",  "audit_after")),
+        ui.nav_panel("Accessible", panel_body("plot_after",  "audit_after")),
     ),
 )
 
@@ -304,23 +320,23 @@ def server(input, output, session):
         return base_plot()
 
     @reactive.calc
-    def improved():
-        return improved_plot(input.level())
+    def accessible():
+        return a11y_plot(input.level())
 
-    @render.plot
+    @render.plot(dpi=96)
     def plot_before():
         return base()
 
-    @render.plot
+    @render.plot(dpi=96)
     def plot_after():
-        return improved()
+        return accessible()
 
     def audit_table(p):
         rows = a11y_audit_actionable(a11y_audit_chart(p, level=input.level()))
         return ui.HTML(to_html_datatable(
             pd.DataFrame(rows),
             caption="Audit", classes="compact stripe hover",
-            showIndex=False, **dt_kwargs))
+            showIndex=False, **audit_opts))
 
     @render.ui
     def audit_before():
@@ -328,9 +344,16 @@ def server(input, output, session):
 
     @render.ui
     def audit_after():
-        return audit_table(improved())
+        return audit_table(accessible())
 
 app = App(app_ui, server)
+
+## file: requirements.txt
+shiny
+plotnine
+pandas
+itables
+a11yviz==0.1.5
 
 ## file: styles.css
 html, body { height: 100%; background: transparent; font-size: 14px; }
@@ -356,14 +379,7 @@ table.dataTable.hover &gt; tbody &gt; tr:hover &gt; *, table.dataTable.hover tbo
   table.dataTable th:nth-child(2), table.dataTable td:nth-child(2) { width: 50%; }
   table.dataTable th:nth-child(3), table.dataTable td:nth-child(3) { width: 28%; }
   table.dataTable th:nth-child(4), table.dataTable td:nth-child(4) { display: none; }
-}
-
-## file: requirements.txt
-shiny
-plotnine
-pandas
-itables
-a11yviz==0.1.4</code></pre>
+}</code></pre>
 </div>
 </section><script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {

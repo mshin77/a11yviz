@@ -23,7 +23,7 @@ a11y_rubric <- function(level = NULL) {
              "Use of Color",
              "Contrast (Minimum)",
              "Resize Text",
-             "Contrast (Enhanced)",
+             "Contrast (AAA)",
              "Reflow",
              "Non-text Contrast",
              "Text Spacing",

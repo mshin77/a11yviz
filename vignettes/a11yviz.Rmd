@@ -66,9 +66,9 @@ Two actionable items come back as `todo`:
 - WCAG 1.1.1: alt text missing
 - WCAG 1.4.1: redundant group encoding (color only)
 
-## Improved
+## Accessible
 
-```{r improved, fig.width = 6, fig.height = 4}
+```{r accessible, fig.width = 6, fig.height = 4}
 p_a11y <- ggplot(penguins, aes(flipper_length_mm, body_mass_g, color = species)) +
   geom_point(size = 2, alpha = 0.75) +
   theme_a11y() +
@@ -90,7 +90,7 @@ add direct cluster labels or facet by species to clear it.
 
 ## Audit again
 
-```{r audit-improved, eval = requireNamespace("DT", quietly = TRUE)}
+```{r audit-accessible, eval = requireNamespace("DT", quietly = TRUE)}
 audit_a <- a11y_audit_chart(p_a11y)
 cat(a11y_audit_summary(audit_a))
 dt_show(a11y_audit_actionable(audit_a))
@@ -124,7 +124,7 @@ basename(a11y_css())
 
 `run_app()` launches a local Shiny playground (mirrors the Python
 `a11yviz.run_app()`). Two tabs compare a baseline ggplot chart against the
-a11y-improved version with paired audit tables; toggle between WCAG AA and
+accessible version with paired audit tables; toggle between WCAG AA and
 AAA in the sidebar. Requires `shiny`, `bslib`, and `DT`.
 
 ```r

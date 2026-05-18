@@ -20,9 +20,8 @@
 - [Python
   walkthrough](https://mshin77.github.io/a11yviz/articles/py-walkthrough.md):
 
-  Interactive shinylive demo: a plotnine chart rendered with defaults
-  versus a11yviz theme, palette, and alt text, with a per-criterion WCAG
-  audit.
+  Interactive shinylive demo: plotnine defaults versus the package’s
+  accessible theme, palette, and alt text, with a per-criterion audit.
 
 - [R function
   reference](https://mshin77.github.io/a11yviz/articles/r-reference.md):

@@ -92,4 +92,4 @@ One-shot helpers and resource paths.
 | `a11y_css(mode = c("default", "shiny"))` | Path to the accessible CSS |
 | `a11y_css_contents(mode = c("default", "shiny"))` | Contents of the accessible CSS |
 | `a11y_wcag_url(criterion)` | WCAG 2.1 specification URL for a success criterion |
-| `run_app(...)` | Launch the local accessibility playground |
+| `run_app(host = "127.0.0.1", port = 8000, launch_browser = TRUE, ...)` | Launch the local accessibility playground |

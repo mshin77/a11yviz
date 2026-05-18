@@ -4,7 +4,7 @@ The same chart rendered with plotnine defaults versus the package’s
 accessible theme, palette, and alt text. Toggle the WCAG level to see
 contrast and font thresholds shift; the audit table reports
 per-criterion status for each version. Switch tabs to compare baseline
-against improved.
+against accessible.
 
 Edit the code on the left to swap in a different dataset, change
 aesthetics, or tweak the theme — the chart and audit update on the
@@ -21,25 +21,19 @@ right.
 #| viewerHeight: 720
 #| components: [editor, viewer]
 
-## file: app.py
-from pathlib import Path
-from shiny import App, ui, render, reactive
-from plotnine import ggplot, aes, geom_point, labs, scale_color_manual, theme
+## file: chart.py
+# Edit the chart. Re-run (Ctrl+Shift+Enter) to update both panels and the audit.
+
+from plotnine import (ggplot, aes, geom_point, geom_text, labs,
+                      scale_color_manual, theme)
 from plotnine.data import penguins
-import pandas as pd
-import itables
-from itables import to_html_datatable
-from a11yviz import (theme_a11y, a11y_palette, a11y_alt_text,
-                     a11y_audit_chart, a11y_audit_actionable)
+from a11yviz import a11y_palette, theme_a11y, a11y_alt_text
 
-itables.options.warn_on_undocumented_option = False
-
-panel_css = (Path(__file__).parent / "styles.css").read_text()
-
-dt_kwargs = {"dom": "t", "ordering": False,
-             "columnDefs": [{"className": "dt-left", "targets": "_all"}]}
-
-penguins = penguins.dropna()
+penguins  = penguins.dropna()
+centroids = penguins.groupby("species", as_index=False).agg(
+    flipper_length_mm=("flipper_length_mm", "mean"),
+    body_mass_g=("body_mass_g", "mean"),
+)
 
 def base_plot():
     return (
@@ -48,12 +42,16 @@ def base_plot():
         + labs(title="Penguins (default plotnine)")
     )
 
-def improved_plot(level):
-    palette = a11y_palette("dark2_8", n=penguins["species"].nunique())
+def a11y_plot(level):
+    pal_name = "aaa_5" if level == "AAA" else "dark2_8"
+    palette = a11y_palette(pal_name, n=penguins["species"].nunique())
     p = (
         ggplot(penguins, aes("flipper_length_mm", "body_mass_g", color="species"))
         + geom_point(size=2, alpha=0.75)
         + scale_color_manual(values=palette)
+        + geom_text(data=centroids, mapping=aes(label="species"),
+                    color="black", size=10, fontweight="bold",
+                    show_legend=False)
         + theme_a11y(level=level)
         + labs(title="Penguins (theme_a11y + a11y_palette)",
                x="Flipper length (mm)", y="Body mass (g)", color="Species")
@@ -63,6 +61,24 @@ def improved_plot(level):
         p,
         "Penguin body mass vs flipper length by species, AA accessible.",
     )
+
+## file: app.py
+from pathlib import Path
+from shiny import App, ui, render, reactive
+import pandas as pd
+import itables
+from itables import to_html_datatable
+from a11yviz import a11y_audit_chart, a11y_audit_actionable
+
+from chart import base_plot, a11y_plot
+
+itables.options.warn_on_undocumented_option = False
+
+app_dir   = Path(__file__).parent
+panel_css = (app_dir / "styles.css").read_text()
+
+audit_opts = {"dom": "t", "ordering": False,
+              "columnDefs": [{"className": "dt-left", "targets": "_all"}]}
 
 def panel_body(plot_id, audit_id):
     return ui.TagList(
@@ -81,7 +97,7 @@ app_ui = ui.page_fillable(
     ),
     ui.navset_underline(
         ui.nav_panel("Baseline", panel_body("plot_before", "audit_before")),
-        ui.nav_panel("Improved", panel_body("plot_after",  "audit_after")),
+        ui.nav_panel("Accessible", panel_body("plot_after",  "audit_after")),
     ),
 )
 
@@ -91,23 +107,23 @@ def server(input, output, session):
         return base_plot()
 
     @reactive.calc
-    def improved():
-        return improved_plot(input.level())
+    def accessible():
+        return a11y_plot(input.level())
 
-    @render.plot
+    @render.plot(dpi=96)
     def plot_before():
         return base()
 
-    @render.plot
+    @render.plot(dpi=96)
     def plot_after():
-        return improved()
+        return accessible()
 
     def audit_table(p):
         rows = a11y_audit_actionable(a11y_audit_chart(p, level=input.level()))
         return ui.HTML(to_html_datatable(
             pd.DataFrame(rows),
             caption="Audit", classes="compact stripe hover",
-            showIndex=False, **dt_kwargs))
+            showIndex=False, **audit_opts))
 
     @render.ui
     def audit_before():
@@ -115,9 +131,16 @@ def server(input, output, session):
 
     @render.ui
     def audit_after():
-        return audit_table(improved())
+        return audit_table(accessible())
 
 app = App(app_ui, server)
+
+## file: requirements.txt
+shiny
+plotnine
+pandas
+itables
+a11yviz==0.1.5
 
 ## file: styles.css
 html, body { height: 100%; background: transparent; font-size: 14px; }
@@ -144,11 +167,4 @@ table.dataTable.hover > tbody > tr:hover > *, table.dataTable.hover tbody tr:hov
   table.dataTable th:nth-child(3), table.dataTable td:nth-child(3) { width: 28%; }
   table.dataTable th:nth-child(4), table.dataTable td:nth-child(4) { display: none; }
 }
-
-## file: requirements.txt
-shiny
-plotnine
-pandas
-itables
-a11yviz==0.1.4
 ```

@@ -63,7 +63,7 @@ Two actionable items come back as `todo`:
 - WCAG 1.1.1: alt text missing
 - WCAG 1.4.1: redundant group encoding (color only)
 
-## Improved
+## Accessible
 
 ``` r
 p_a11y <- ggplot(penguins, aes(flipper_length_mm, body_mass_g, color = species)) +
@@ -77,7 +77,7 @@ p_a11y <- a11y_alt_text(p_a11y,
 p_a11y
 ```
 
-![](a11yviz_files/figure-html/improved-1.png)
+![](a11yviz_files/figure-html/accessible-1.png)
 
 Three accessibility wins from a few extra lines:
 `scale_color_a11y("dark2_8")` swaps in WCAG-tagged colors that clear 3:1
@@ -133,8 +133,8 @@ basename(a11y_css())
 [`run_app()`](https://mshin77.github.io/a11yviz/reference/run_app.md)
 launches a local Shiny playground (mirrors the Python
 `a11yviz.run_app()`). Two tabs compare a baseline ggplot chart against
-the a11y-improved version with paired audit tables; toggle between WCAG
-AA and AAA in the sidebar. Requires `shiny`, `bslib`, and `DT`.
+the accessible version with paired audit tables; toggle between WCAG AA
+and AAA in the sidebar. Requires `shiny`, `bslib`, and `DT`.
 
 ``` r
 run_app()

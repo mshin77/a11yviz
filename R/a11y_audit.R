@@ -2,7 +2,7 @@
 #'
 #' Returns the chart-relevant rows from the WCAG 2.1 audit: alt text,
 #' redundant group encoding, text contrast, text size, non-text contrast,
-#' hover/focus, and (at AAA) enhanced text contrast.
+#' hover/focus, and (at AAA) stronger text contrast.
 #'
 #' @param p A `plotly` or `ggplot` object.
 #' @param level `"AA"` or `"AAA"`.
@@ -40,7 +40,7 @@ a11y_audit_chart <- function(p, level = "AA") {
     .row("1.4.13", "Content on hover or focus",
          hover$status, hover$note)
   )
-  aaa <- list(.row("1.4.6", "Enhanced text contrast (AAA)",
+  aaa <- list(.row("1.4.6", "AAA text contrast",
                    applied, "AAA contrast ratios applied"))
   do.call(rbind, c(rows, aaa[level == "AAA"]))
 }
@@ -166,6 +166,6 @@ a11y_audit_summary <- function(audit) {
   list(
     status = if (has_redundant) "ok" else "todo",
     note   = if (has_redundant) "shape or linetype redundantly encodes group"
-             else                "add shape= or linetype= to redundantly encode the group"
+             else                "add direct group labels (geom_text at cluster centroids), facet by group, or aes(shape=) / aes(linetype=) to redundantly encode the group"
   )
 }

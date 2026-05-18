@@ -31,7 +31,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">a11yviz</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.1.4</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.1.5</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -171,11 +171,11 @@
       btn.setAttribute('aria-label', label);
       setTimeout(function () { btn.classList.remove('copied-flash'); btn.setAttribute('aria-label', prev); }, 900);
     };
-    var enhance = function (editor) {
-      if (editor.dataset.a11yvizEnhanced === '1') return;
+    var addButtons = function (editor) {
+      if (editor.dataset.a11yvizButtonsAdded === '1') return;
       var actions = editor.querySelector('.editor-actions');
       if (!actions) return;
-      editor.dataset.a11yvizEnhanced = '1';
+      editor.dataset.a11yvizButtonsAdded = '1';
       var copyBtn = document.createElement('button');
       copyBtn.type = 'button';
       copyBtn.className = 'code-run-button';
@@ -215,13 +215,13 @@
     };
     var sweep = function () {
       document.querySelectorAll('.shinylive-container.editor-viewer').forEach(initCols);
-      document.querySelectorAll('.shinylive-editor').forEach(enhance);
+      document.querySelectorAll('.shinylive-editor').forEach(addButtons);
     };
     if (document.readyState !== 'loading') sweep();
     else document.addEventListener('DOMContentLoaded', sweep);
     new MutationObserver(sweep).observe(document.documentElement, { childList: true, subtree: true });
   })();
-</script><p>The same chart rendered with ggplot defaults versus the package’s accessible theme, palette, and alt text. Toggle the WCAG level to see contrast and font thresholds shift; the audit table reports per-criterion status for each version. Switch tabs to compare baseline against improved.</p>
+</script><p>The same chart rendered with ggplot defaults versus the package’s accessible theme, palette, and alt text. Toggle the WCAG level to see contrast and font thresholds shift; the audit table reports per-criterion status for each version. Switch tabs to compare baseline against accessible.</p>
 <p>Edit the code on the left to swap in a different dataset, change aesthetics, or tweak the theme — the chart and audit update on the right.</p>
 <section class="level2 unnumbered"><h2 class="unnumbered" id="live-demo">Live demo<a class="anchor" aria-label="anchor" href="#live-demo"></a>
 </h2>
@@ -234,17 +234,12 @@
 #| viewerHeight: 720
 #| components: [editor, viewer]
 
-## file: app.R
-suppressPackageStartupMessages({
-  library(shiny); library(bslib); library(ggplot2)
-  library(palmerpenguins); library(DT)
-})
-app_dir   &lt;- if (is.null(sys.frame(1)$ofile)) "." else dirname(sys.frame(1)$ofile)
-source(file.path(app_dir, "helpers.R"))
-panel_css &lt;- paste(readLines(file.path(app_dir, "styles.css"), warn = FALSE),
-                   collapse = "\n")
+## file: chart.R
+# Edit the chart. Re-run (Ctrl+Shift+Enter) to update both panels and the audit.
 
-penguins &lt;- na.omit(penguins)
+penguins  &lt;- na.omit(palmerpenguins::penguins)
+centroids &lt;- aggregate(cbind(flipper_length_mm, body_mass_g) ~ species,
+                       data = penguins, mean)
 
 base_plot &lt;- function() {
   ggplot(penguins, aes(flipper_length_mm, body_mass_g, color = species)) +
@@ -252,18 +247,35 @@ base_plot &lt;- function() {
     labs(title = "Penguins (default ggplot)")
 }
 
-improved_plot &lt;- function(level) {
+a11y_plot &lt;- function(level) {
   pal_name &lt;- if (level == "AAA") "aaa_5" else "dark2_8"
   palette  &lt;- a11y_palette(pal_name, n = nlevels(droplevels(penguins$species)))
   p &lt;- ggplot(penguins, aes(flipper_length_mm, body_mass_g, color = species)) +
     geom_point(size = 2, alpha = 0.75) +
     scale_color_manual(values = palette) +
+    geom_text(data = centroids, aes(label = species),
+              color = "black", size = 4, fontface = "bold",
+              show.legend = FALSE) +
     theme_a11y(level = level) +
     labs(title = "Penguins (theme_a11y + a11y_palette)",
          x = "Flipper length (mm)", y = "Body mass (g)", color = "Species") +
     theme(legend.position = "top")
   a11y_alt_text(p, "Penguin body mass vs flipper length by species, AA accessible.")
 }
+
+## file: app.R
+suppressPackageStartupMessages({
+  library(shiny); library(bslib); library(ggplot2)
+  library(palmerpenguins); library(DT)
+})
+app_dir &lt;- if (is.null(sys.frame(1)$ofile)) "." else dirname(sys.frame(1)$ofile)
+source(file.path(app_dir, "helpers.R"))
+source(file.path(app_dir, "chart.R"))
+panel_css &lt;- paste(readLines(file.path(app_dir, "styles.css"), warn = FALSE),
+                   collapse = "\n")
+
+audit_opts &lt;- list(dom = "t", ordering = FALSE,
+                   columnDefs = list(list(className = "dt-left", targets = "_all")))
 
 panel_body &lt;- function(plot_id, audit_id) {
   tagList(
@@ -273,39 +285,37 @@ panel_body &lt;- function(plot_id, audit_id) {
   )
 }
 
-ui &lt;- page_fillable(
+app_ui &lt;- page_fillable(
   tags$head(tags$style(HTML(panel_css))),
   radioButtons("level", "WCAG level:",
                choices = c("AA", "AAA"), selected = "AA", inline = TRUE),
   navset_underline(
     nav_panel("Baseline", panel_body("plot_before", "audit_before")),
-    nav_panel("Improved", panel_body("plot_after",  "audit_after"))
+    nav_panel("Accessible", panel_body("plot_after",  "audit_after"))
   )
 )
 
 server &lt;- function(input, output, session) {
-  base     &lt;- reactive(base_plot())
-  improved &lt;- reactive(improved_plot(input$level))
+  base       &lt;- reactive(base_plot())
+  accessible &lt;- reactive(a11y_plot(input$level))
 
-  output$plot_before &lt;- renderPlot(base(),     res = 96)
-  output$plot_after  &lt;- renderPlot(improved(), res = 96)
-
-  audit_opts &lt;- list(dom = "t", ordering = FALSE,
-                     columnDefs = list(list(className = "dt-left", targets = "_all")))
+  output$plot_before &lt;- renderPlot(base(),       res = 96)
+  output$plot_after  &lt;- renderPlot(accessible(), res = 96)
 
   audit_table &lt;- function(p) {
+    rows &lt;- a11y_audit_actionable(a11y_audit_chart(p, level = input$level))
     DT::datatable(
-      a11y_audit_actionable(a11y_audit_chart(p, level = input$level)),
+      rows,
       caption = "Audit", options = audit_opts, rownames = FALSE,
       class = "compact stripe hover", selection = "none"
     )
   }
 
   output$audit_before &lt;- DT::renderDT(audit_table(base()))
-  output$audit_after  &lt;- DT::renderDT(audit_table(improved()))
+  output$audit_after  &lt;- DT::renderDT(audit_table(accessible()))
 }
 
-shinyApp(ui, server)
+shinyApp(app_ui, server)
 
 ## file: helpers.R
 # a11yviz core (inlined; webR cannot install the package at runtime).
@@ -374,7 +384,7 @@ a11y_audit_chart &lt;- function(p, level = "AA") {
       else         "call a11y_alt_text() or a11y_alt_template()",
       if (!has_color)        "no color/fill aesthetic"
       else if (has_redundant) "shape or linetype redundantly encodes group"
-      else                    "add shape= or linetype= to redundantly encode the group",
+      else                    "add direct group labels (geom_text at cluster centroids), facet by group, or aes(shape=) / aes(linetype=) to redundantly encode the group",
       "theme_a11y() / a11y_layout() set 4.5:1 text on 3:1 non-text",
       if (!is.numeric(base_size)) sprintf("verify text size manually (min %g pt for %s)", threshold, level)
       else if (text_ok)           sprintf("base size %g pt (min %g pt)", base_size, threshold)
@@ -386,7 +396,7 @@ a11y_audit_chart &lt;- function(p, level = "AA") {
   )
   if (level == "AAA")
     rows &lt;- rbind(rows,
-      data.frame(criterion = "1.4.6", check = "Enhanced text contrast (AAA)",
+      data.frame(criterion = "1.4.6", check = "AAA text contrast",
                  status = applied, note = "AAA contrast ratios applied",
                  stringsAsFactors = FALSE))
   rows

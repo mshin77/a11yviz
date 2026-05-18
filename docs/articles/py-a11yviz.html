@@ -29,7 +29,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">a11yviz</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.1.4</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.1.5</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -96,7 +96,7 @@
 
 
 
-    <div id="abf090db" class="cell" data-execution_count="1">
+    <div id="7a2df89a" class="cell" data-execution_count="1">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> a11yviz</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> itables <span class="im">import</span> show</span>
@@ -220,26 +220,26 @@
 <ul>
 <li>WCAG 1.1.1: alt text missing</li>
 <li>WCAG 1.4.1: redundant group encoding (color only)</li>
-</ul></section><section class="level2"><h2 id="improved">Improved<a class="anchor" aria-label="anchor" href="#improved"></a>
+</ul></section><section class="level2"><h2 id="accessible">Accessible<a class="anchor" aria-label="anchor" href="#accessible"></a>
 </h2>
-<div id="cell-improved" class="cell" data-fig-height="4" data-fig-width="6" data-execution_count="4">
-<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>p2 <span class="op">=</span> (</span>
+<div id="cell-accessible" class="cell" data-fig-height="4" data-fig-width="6" data-execution_count="4">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>p_a11y <span class="op">=</span> (</span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>    ggplot(penguins, aes(<span class="st">"flipper_length_mm"</span>, <span class="st">"body_mass_g"</span>, color<span class="op">=</span><span class="st">"species"</span>))</span>
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> geom_point(size<span class="op">=</span><span class="dv">2</span>, alpha<span class="op">=</span><span class="fl">0.75</span>)</span>
 <span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> a11yviz.theme_a11y()</span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> a11yviz.scale_color_a11y(palette<span class="op">=</span><span class="st">"dark2_8"</span>)</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> a11yviz.scale_color_a11y(<span class="st">"dark2_8"</span>)</span>
 <span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> labs(x<span class="op">=</span><span class="st">"Flipper length (mm)"</span>, y<span class="op">=</span><span class="st">"Body mass (g)"</span>, color<span class="op">=</span><span class="st">"Species"</span>)</span>
 <span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> theme(legend_position<span class="op">=</span><span class="st">"top"</span>)</span>
 <span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>p2 <span class="op">=</span> a11yviz.a11y_alt_text(</span>
-<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>    p2,</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>p_a11y <span class="op">=</span> a11yviz.a11y_alt_text(</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>    p_a11y,</span>
 <span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Scatter of penguin body mass vs flipper length by species; "</span></span>
 <span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Gentoo cluster at long flippers and high body mass."</span>,</span>
 <span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>p2</span></code></pre></div>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>p_a11y</span></code></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="4">
 <div>
-<figure><p><img src="py-a11yviz_files/figure-html/improved-output-1.png" id="improved" width="672" height="480"></p>
+<figure><p><img src="py-a11yviz_files/figure-html/accessible-output-1.png" id="accessible" width="672" height="480"></p>
 </figure>
 </div>
 </div>
@@ -247,17 +247,17 @@
 <p>Three accessibility wins from a few extra lines: <code>scale_color_a11y("dark2_8")</code> swaps in WCAG-tagged colors that clear 3:1 on white (Success Criterion 1.4.11), <code><a href="../reference/theme_a11y.html">theme_a11y()</a></code> applies the recommended font sizes and axis styling (Success Criterion 1.4.4), and <code><a href="../reference/a11y_alt_text.html">a11y_alt_text()</a></code> attaches the screen-reader description (Success Criterion 1.1.1). Color is still the only group cue, so the audit honestly flags 1.4.1 as <code>todo</code> — when shape variety would hurt readability, add direct cluster labels or facet by species to clear it.</p>
 </section><section class="level2"><h2 id="audit-again">Audit again<a class="anchor" aria-label="anchor" href="#audit-again"></a>
 </h2>
-<div id="cell-audit-improved" class="cell" data-execution_count="5">
-<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>audit_a <span class="op">=</span> a11yviz.a11y_audit_chart(p2)</span>
+<div id="cell-audit-accessible" class="cell" data-execution_count="5">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>audit_a <span class="op">=</span> a11yviz.a11y_audit_chart(p_a11y)</span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(a11yviz.a11y_audit_summary(audit_a))</span>
 <span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>show(pd.DataFrame(a11yviz.a11y_audit_actionable(audit_a)),</span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>     table_id<span class="op">=</span><span class="st">"audit-improved"</span>, <span class="op">**</span>dt_options)</span></code></pre></div>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>     table_id<span class="op">=</span><span class="st">"audit-accessible"</span>, <span class="op">**</span>dt_options)</span></code></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>1 to do, 0 ok, 5 already handled.</code></pre>
 </div>
-<div id="audit-improved" class="cell-output cell-output-display">
+<div id="audit-accessible" class="cell-output cell-output-display">
 <!--| quarto-html-table-processing: none -->
-<table id="audit-improved" class="table"><tbody><tr>
+<table id="audit-accessible" class="table"><tbody><tr>
 <td style="vertical-align:middle; text-align:left">
 <a href="https://mwouts.github.io/itables/" class="external-link"><svg class="main-svg" xmlns="http://www.w3.org/2000/svg" xlink="http://www.w3.org/1999/xlink" width="64" viewbox="0 0 500 400" style="font-family: 'Droid Sans', sans-serif;"><g style="fill:#d9d7fc"><path d="M100,400H500V357H100Z"></path><path d="M100,300H400V257H100Z"></path><path d="M0,200H400V157H0Z"></path><path d="M100,100H500V57H100Z"></path><path d="M100,350H500V307H100Z"></path><path d="M100,250H400V207H100Z"></path><path d="M0,150H400V107H0Z"></path><path d="M100,50H500V7H100Z"></path></g><g style="fill:#1a1366;stroke:#1a1366;"><rect x="100" y="7" width="400" height="43"><animate attributename="width" values="0;400;0" dur="5s" repeatcount="indefinite"></animate><animate attributename="x" values="100;100;500" dur="5s" repeatcount="indefinite"></animate></rect><rect x="0" y="107" width="400" height="43"><animate attributename="width" values="0;400;0" dur="3.5s" repeatcount="indefinite"></animate><animate attributename="x" values="0;0;400" dur="3.5s" repeatcount="indefinite"></animate></rect><rect x="100" y="207" width="300" height="43"><animate attributename="width" values="0;300;0" dur="3s" repeatcount="indefinite"></animate><animate attributename="x" values="100;100;400" dur="3s" repeatcount="indefinite"></animate></rect><rect x="100" y="307" width="400" height="43"><animate attributename="width" values="0;400;0" dur="4s" repeatcount="indefinite"></animate><animate attributename="x" values="100;100;500" dur="4s" repeatcount="indefinite"></animate></rect><g style="fill:transparent;stroke-width:8; stroke-linejoin:round" rx="5"><g transform="translate(45 50) rotate(-45)"><circle r="33" cx="0" cy="0"></circle><rect x="-8" y="32" width="16" height="30"></rect></g><g transform="translate(450 152)"><polyline points="-15,-20 -35,-20 -35,40 25,40 25,20"></polyline><rect x="-15" y="-40" width="60" height="60"></rect></g><g transform="translate(50 352)"><polygon points="-35,-5 0,-40 35,-5"></polygon><polygon points="-35,10 0,45 35,10"></polygon></g><g transform="translate(75 250)"><polyline points="-30,30 -60,0 -30,-30"></polyline><polyline points="0,30 -30,0 0,-30"></polyline></g><g transform="translate(425 250) rotate(180)"><polyline points="-30,30 -60,0 -30,-30"></polyline><polyline points="0,30 -30,0 0,-30"></polyline></g></g></g></svg></a>
         Loading ITables v2.7.3 from the internet...
@@ -268,7 +268,7 @@
 <script type="module">
     import { ITable, jQuery as $ } from 'https://www.unpkg.com/dt_for_itables@2.5.1/dt_bundle.js';
 
-    document.querySelectorAll("#audit-improved:not(.dataTable)").forEach(table => {
+    document.querySelectorAll("#audit-accessible:not(.dataTable)").forEach(table => {
         if (!(table instanceof HTMLTableElement))
             return;
 
@@ -343,7 +343,7 @@
 </div>
 </section><section class="level2"><h2 id="playground">Playground<a class="anchor" aria-label="anchor" href="#playground"></a>
 </h2>
-<p><code>a11yviz.run_app()</code> launches a local Shiny for Python playground (mirrors the R <code><a href="../reference/run_app.html">run_app()</a></code>). Two tabs compare a baseline plotnine chart against the a11y-improved version with paired audit tables; toggle between WCAG AA and AAA in the sidebar. Requires the <code>playground</code> extra:</p>
+<p><code>a11yviz.run_app()</code> launches a local Shiny for Python playground (mirrors the R <code><a href="../reference/run_app.html">run_app()</a></code>). Two tabs compare a baseline plotnine chart against the accessible version with paired audit tables; toggle between WCAG AA and AAA in the sidebar. Requires the <code>playground</code> extra:</p>
 <div class="sourceCode" id="cb11"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="ex">pip</span> install <span class="st">"a11yviz[playground]"</span></span></code></pre></div>
 <div class="sourceCode" id="cb12"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> a11yviz</span>
 <span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>a11yviz.run_app()</span></code></pre></div>

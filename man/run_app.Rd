@@ -4,9 +4,15 @@
 \alias{run_app}
 \title{Launch the local accessibility playground}
 \usage{
-run_app(...)
+run_app(host = "127.0.0.1", port = 8000, launch_browser = TRUE, ...)
 }
 \arguments{
+\item{host}{Network host (default \code{"127.0.0.1"}).}
+
+\item{port}{Port (default \code{8000}).}
+
+\item{launch_browser}{Open the default browser (default \code{TRUE}).}
+
 \item{...}{Passed to \code{\link[shiny:runApp]{shiny::runApp()}}.}
 }
 \value{

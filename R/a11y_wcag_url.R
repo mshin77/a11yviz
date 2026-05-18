@@ -25,7 +25,8 @@ a11y_wcag_url <- function(criterion) {
     "1.4.1"  = "use-of-color",
     "1.4.3"  = "contrast-minimum",
     "1.4.4"  = "resize-text",
-    "1.4.6"  = "contrast-enhanced",
+    "1.4.6"  = "contrast-enhanced",  # W3C-set fragment id; do not rename
+
     "1.4.10" = "reflow",
     "1.4.11" = "non-text-contrast",
     "1.4.12" = "text-spacing",

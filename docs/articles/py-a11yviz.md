@@ -66,26 +66,26 @@ Two actionable items come back as `todo`:
 - WCAG 1.1.1: alt text missing
 - WCAG 1.4.1: redundant group encoding (color only)
 
-## Improved
+## Accessible
 
 ``` python
-p2 = (
+p_a11y = (
     ggplot(penguins, aes("flipper_length_mm", "body_mass_g", color="species"))
     + geom_point(size=2, alpha=0.75)
     + a11yviz.theme_a11y()
-    + a11yviz.scale_color_a11y(palette="dark2_8")
+    + a11yviz.scale_color_a11y("dark2_8")
     + labs(x="Flipper length (mm)", y="Body mass (g)", color="Species")
     + theme(legend_position="top")
 )
-p2 = a11yviz.a11y_alt_text(
-    p2,
+p_a11y = a11yviz.a11y_alt_text(
+    p_a11y,
     "Scatter of penguin body mass vs flipper length by species; "
     "Gentoo cluster at long flippers and high body mass.",
 )
-p2
+p_a11y
 ```
 
-![](py-a11yviz_files/figure-html/improved-output-1.png)
+![](py-a11yviz_files/figure-html/accessible-output-1.png)
 
 Three accessibility wins from a few extra lines:
 `scale_color_a11y("dark2_8")` swaps in WCAG-tagged colors that clear 3:1
@@ -102,10 +102,10 @@ or facet by species to clear it.
 ## Audit again
 
 ``` python
-audit_a = a11yviz.a11y_audit_chart(p2)
+audit_a = a11yviz.a11y_audit_chart(p_a11y)
 print(a11yviz.a11y_audit_summary(audit_a))
 show(pd.DataFrame(a11yviz.a11y_audit_actionable(audit_a)),
-     table_id="audit-improved", **dt_options)
+     table_id="audit-accessible", **dt_options)
 ```
 
     1 to do, 0 ok, 5 already handled.
@@ -153,7 +153,7 @@ os.path.basename(str(a11yviz.a11y_css()))
 `a11yviz.run_app()` launches a local Shiny for Python playground
 (mirrors the R
 [`run_app()`](https://mshin77.github.io/a11yviz/reference/run_app.md)).
-Two tabs compare a baseline plotnine chart against the a11y-improved
+Two tabs compare a baseline plotnine chart against the accessible
 version with paired audit tables; toggle between WCAG AA and AAA in the
 sidebar. Requires the `playground` extra:
 

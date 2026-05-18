@@ -1,6 +1,6 @@
 Package: a11yviz
 Title: Accessibility Toolkit for 'ggplot2', 'plotly', and 'Quarto'
-Version: 0.1.4
+Version: 0.1.5
 Authors@R:
     person("Mikyung", "Shin", , "shin.mikyung@gmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0001-7907-9193", affiliation = "Illinois State University"))
@@ -9,7 +9,7 @@ Description: Makes charts and documents accessible across 'ggplot2',
     Guidelines (WCAG 2.1, <https://www.w3.org/TR/WCAG21/>). Includes
     WCAG-tagged palettes, alt-text scaffolds, audits, a document
     rubric, heading and reading-level checks, 'shiny' ARIA helpers,
-    and a drop-in stylesheet for 'DT' and 'DiagrammeR', as employed
+    and a stylesheet for 'DT' and 'DiagrammeR', as employed
     in Shin et al. (2026) <doi:10.1177/07319487251412879>.
 License: MIT + file LICENSE
 Language: en-US

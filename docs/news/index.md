@@ -1,5 +1,10 @@
 # Changelog
 
+## a11yviz 0.1.5
+
+- Playground opens on a short chart file users can edit directly.
+- Accessible chart shows a label at each species center.
+
 ## a11yviz 0.1.4
 
 - Split the audit into chart and document parts for shorter tables.

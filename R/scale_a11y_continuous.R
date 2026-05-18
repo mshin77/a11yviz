@@ -55,3 +55,4 @@ scale_fill_a11y_seq <- function(palette = "cividis", ...) {
   ggplot2::scale_fill_viridis_c(option = s$option, begin = s$begin,
                                 end = s$end, direction = s$direction, ...)
 }
+

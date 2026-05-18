@@ -8,10 +8,22 @@ packages are flagged at launch.
 ## Usage
 
 ``` r
-run_app(...)
+run_app(host = "127.0.0.1", port = 8000, launch_browser = TRUE, ...)
 ```
 
 ## Arguments
+
+- host:
+
+  Network host (default `"127.0.0.1"`).
+
+- port:
+
+  Port (default `8000`).
+
+- launch_browser:
+
+  Open the default browser (default `TRUE`).
 
 - ...:
 

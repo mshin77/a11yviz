@@ -35,7 +35,7 @@ a11y_rubric()
 #> 3      1.4.1              Use of Color     A
 #> 4      1.4.3        Contrast (Minimum)    AA
 #> 5      1.4.4               Resize Text    AA
-#> 6      1.4.6       Contrast (Enhanced)   AAA
+#> 6      1.4.6            Contrast (AAA)   AAA
 #> 7     1.4.10                    Reflow    AA
 #> 8     1.4.11         Non-text Contrast    AA
 #> 9     1.4.12              Text Spacing    AA
@@ -100,7 +100,7 @@ a11y_rubric(level = "AAA")
 #> 3      1.4.1              Use of Color     A
 #> 4      1.4.3        Contrast (Minimum)    AA
 #> 5      1.4.4               Resize Text    AA
-#> 6      1.4.6       Contrast (Enhanced)   AAA
+#> 6      1.4.6            Contrast (AAA)   AAA
 #> 7     1.4.10                    Reflow    AA
 #> 8     1.4.11         Non-text Contrast    AA
 #> 9     1.4.12              Text Spacing    AA
