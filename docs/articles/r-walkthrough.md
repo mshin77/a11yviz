@@ -61,13 +61,16 @@ source(file.path(app_dir, "chart.R"))
 panel_css <- paste(readLines(file.path(app_dir, "styles.css"), warn = FALSE),
                    collapse = "\n")
 
-audit_opts <- list(dom = "t", ordering = FALSE,
+audit_opts <- list(dom = "Bt", ordering = FALSE,
+                   buttons = list("copy", "csv", "excel", "pdf"),
                    columnDefs = list(list(className = "dt-left", targets = "_all")))
 
-panel_body <- function(plot_id, audit_id) {
+panel_body <- function(plot_id, audit_id, dl_id) {
   tagList(
     div(class = "plot-wrap",
         plotOutput(plot_id, height = "100%", width = "100%")),
+    div(class = "plot-actions",
+        downloadButton(dl_id, "Download chart (PNG)", class = "btn-sm")),
     div(class = "table-responsive", DT::DTOutput(audit_id))
   )
 }
@@ -77,8 +80,8 @@ app_ui <- page_fillable(
   radioButtons("level", "WCAG level:",
                choices = c("AA", "AAA"), selected = "AA", inline = TRUE),
   navset_underline(
-    nav_panel("Baseline", panel_body("plot_before", "audit_before")),
-    nav_panel("Accessible", panel_body("plot_after",  "audit_after"))
+    nav_panel("Baseline",   panel_body("plot_before", "audit_before", "dl_before")),
+    nav_panel("Accessible", panel_body("plot_after",  "audit_after",  "dl_after"))
   )
 )
 
@@ -89,17 +92,32 @@ server <- function(input, output, session) {
   output$plot_before <- renderPlot(base(),       res = 96)
   output$plot_after  <- renderPlot(accessible(), res = 96)
 
+  save_chart <- function(plot_fn, file)
+    ggplot2::ggsave(file, plot = plot_fn(), dpi = 150,
+                    width = 7, height = 4.5, units = "in")
+
+  output$dl_before <- downloadHandler(
+    filename = function() "chart_baseline.png",
+    content  = function(file) save_chart(base, file)
+  )
+  output$dl_after <- downloadHandler(
+    filename = function() "chart_accessible.png",
+    content  = function(file) save_chart(accessible, file)
+  )
+
   audit_table <- function(p) {
     rows <- a11y_audit_actionable(a11y_audit_chart(p, level = input$level))
     DT::datatable(
       rows,
-      caption = "Audit", options = audit_opts, rownames = FALSE,
+      caption = "Audit",
+      extensions = "Buttons",
+      options = audit_opts, rownames = FALSE,
       class = "compact stripe hover", selection = "none"
     )
   }
 
-  output$audit_before <- DT::renderDT(audit_table(base()))
-  output$audit_after  <- DT::renderDT(audit_table(accessible()))
+  output$audit_before <- DT::renderDT(audit_table(base()),       server = FALSE)
+  output$audit_after  <- DT::renderDT(audit_table(accessible()), server = FALSE)
 }
 
 shinyApp(app_ui, server)
@@ -200,10 +218,20 @@ body, .nav-link, .form-check-label, .control-label, table.dataTable, table.dataT
 .tab-content { display: flex; flex-direction: column; flex: 1 1 auto !important; min-height: 0; }
 .tab-pane.active { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; overflow: hidden; }
 .plot-wrap { flex: 0 0 320px; height: 320px; overflow: hidden; }
-.table-responsive { flex: 0 0 200px; height: 200px; min-height: 200px; overflow-y: auto; overflow-x: hidden; }
+.plot-actions { flex: 0 0 auto; padding: 4px 0 8px; }
+.plot-actions .btn { background: #fff; color: #1a1a1a; border: 1px solid #c0c0c0; border-radius: 3px; padding: 3px 8px; font-size: 12px; }
+.plot-actions .btn:hover { background: #f0f0f0; border-color: #888; }
+.plot-actions .btn:focus-visible { outline: 2px solid #1B6EC2; outline-offset: 2px; }
+.table-responsive { flex: 0 0 220px; height: 220px; min-height: 220px; overflow-y: auto; overflow-x: hidden; }
 .dataTables_wrapper, .dt-container { overflow: visible !important; }
 table.dataTable { width: 100% !important; }
 table.dataTable > caption { caption-side: top; text-align: left; font-weight: 600; color: #1a1a1a; padding: 0.5rem 0 0.25rem; position: sticky; top: 0; background: #fff; z-index: 2; }
+table.dataTable thead th, table.dataTable thead td { background: #f5f5f5 !important; color: #1a1a1a !important; border-bottom-color: #d0d0d0 !important; }
+table.dataTable.stripe > tbody > tr.odd > *, table.dataTable.display > tbody > tr.odd > * { background-color: #fafafa !important; }
+.dt-buttons { display: flex; gap: 4px; margin: 4px 0 6px; flex-wrap: wrap; }
+.dt-buttons .dt-button, .dt-buttons button.dt-button { background: #fff !important; color: #1a1a1a !important; border: 1px solid #c0c0c0 !important; border-radius: 3px !important; padding: 3px 8px !important; font-size: 12px !important; box-shadow: none !important; }
+.dt-buttons .dt-button:hover, .dt-buttons button.dt-button:hover { background: #f0f0f0 !important; border-color: #888 !important; }
+.dt-buttons .dt-button:focus-visible { outline: 2px solid #1B6EC2 !important; outline-offset: 2px !important; }
 table.dataTable.hover > tbody > tr:hover > *, table.dataTable.hover tbody tr:hover > *, table.dataTable.hover tbody tr:hover, table.dataTable.display > tbody > tr:hover > *, table.dataTable.display tbody tr:hover > *, table.dataTable.display tbody tr:hover { box-shadow: inset 0 0 0 9999px rgba(0,0,0,.035) !important; background-color: transparent !important; }
 .nav-underline .nav-link:hover, .nav-underline .nav-link:focus { border-bottom-color: transparent !important; color: inherit !important; }
 .form-check:hover, .form-check-input:hover { background-color: transparent !important; }
