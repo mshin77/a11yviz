@@ -24,16 +24,12 @@ right.
 ## file: chart.py
 # Edit the chart. Re-run (Ctrl+Shift+Enter) to update both panels and the audit.
 
-from plotnine import (ggplot, aes, geom_point, geom_text, labs,
-                      scale_color_manual, theme)
+from plotnine import (ggplot, aes, geom_point, labs,
+                      scale_fill_manual, scale_shape_manual, theme)
 from plotnine.data import penguins
 from a11yviz import a11y_palette, theme_a11y, a11y_alt_text
 
-penguins  = penguins.dropna()
-centroids = penguins.groupby("species", as_index=False).agg(
-    flipper_length_mm=("flipper_length_mm", "mean"),
-    body_mass_g=("body_mass_g", "mean"),
-)
+penguins = penguins.dropna()
 
 def base_plot():
     return (
@@ -44,22 +40,22 @@ def base_plot():
 
 def a11y_plot(level):
     pal_name = "aaa_5" if level == "AAA" else "dark2_8"
-    palette = a11y_palette(pal_name, n=penguins["species"].nunique())
+    palette  = a11y_palette(pal_name, n=penguins["species"].nunique())
+    pt_size  = 3.5 if level == "AAA" else 3
     p = (
-        ggplot(penguins, aes("flipper_length_mm", "body_mass_g", color="species"))
-        + geom_point(size=2, alpha=0.75)
-        + scale_color_manual(values=palette)
-        + geom_text(data=centroids, mapping=aes(label="species"),
-                    color="black", size=10, fontweight="bold",
-                    show_legend=False)
+        ggplot(penguins, aes("flipper_length_mm", "body_mass_g",
+                              fill="species", shape="species"))
+        + geom_point(size=pt_size, stroke=0.7, color="white")
+        + scale_fill_manual(values=palette)
+        + scale_shape_manual(values=[21, 24, 22])
         + theme_a11y(level=level)
         + labs(title="Penguins (theme_a11y + a11y_palette)",
-               x="Flipper length (mm)", y="Body mass (g)", color="Species")
+               x="Flipper length (mm)", y="Body mass (g)",
+               fill="Species", shape="Species")
         + theme(legend_position="top")
     )
     return a11y_alt_text(
-        p,
-        "Penguin body mass vs flipper length by species, AA accessible.",
+        p, "Penguin body mass vs flipper length by species, accessible chart."
     )
 
 ## file: app.py

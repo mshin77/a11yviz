@@ -24,9 +24,7 @@ right.
 ## file: chart.R
 # Edit the chart. Re-run (Ctrl+Shift+Enter) to update both panels and the audit.
 
-penguins  <- na.omit(palmerpenguins::penguins)
-centroids <- aggregate(cbind(flipper_length_mm, body_mass_g) ~ species,
-                       data = penguins, mean)
+penguins <- na.omit(palmerpenguins::penguins)
 
 base_plot <- function() {
   ggplot(penguins, aes(flipper_length_mm, body_mass_g, color = species)) +
@@ -37,17 +35,18 @@ base_plot <- function() {
 a11y_plot <- function(level) {
   pal_name <- if (level == "AAA") "aaa_5" else "dark2_8"
   palette  <- a11y_palette(pal_name, n = nlevels(droplevels(penguins$species)))
-  p <- ggplot(penguins, aes(flipper_length_mm, body_mass_g, color = species)) +
-    geom_point(size = 2, alpha = 0.75) +
-    scale_color_manual(values = palette) +
-    geom_text(data = centroids, aes(label = species),
-              color = "black", size = 4, fontface = "bold",
-              show.legend = FALSE) +
+  pt_size  <- if (level == "AAA") 3.5 else 3
+  p <- ggplot(penguins, aes(flipper_length_mm, body_mass_g,
+                            fill = species, shape = species)) +
+    geom_point(size = pt_size, stroke = 0.7, color = "white") +
+    scale_fill_manual(values = palette) +
+    scale_shape_manual(values = c(21, 24, 22)) +
     theme_a11y(level = level) +
     labs(title = "Penguins (theme_a11y + a11y_palette)",
-         x = "Flipper length (mm)", y = "Body mass (g)", color = "Species") +
+         x = "Flipper length (mm)", y = "Body mass (g)",
+         fill = "Species", shape = "Species") +
     theme(legend.position = "top")
-  a11y_alt_text(p, "Penguin body mass vs flipper length by species, AA accessible.")
+  a11y_alt_text(p, "Penguin body mass vs flipper length by species, accessible chart.")
 }
 
 ## file: app.R
