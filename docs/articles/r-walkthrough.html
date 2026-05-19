@@ -101,13 +101,13 @@
     <meta name="shinylive:serviceworker_dir" content=".">
 <script>document.documentElement.classList.add("playground-page");</script><style>
   .playground-page main.content.column-page { grid-column: screen-start / screen-end !important; max-width: none !important; width: auto !important; padding-left: 1rem; padding-right: 1rem; }
-  .playground-page .shinylive-container.editor-viewer { width: 100% !important; max-width: none !important; gap: 0 !important; grid-template-areas: "editor viewer" !important; grid-template-rows: clamp(680px, calc(100vh - 320px), 1100px) !important; }
+  .playground-page .shinylive-container.editor-viewer { width: 100% !important; max-width: none !important; gap: 0 !important; grid-template-areas: "editor viewer" !important; }
   .playground-page .shinylive-container.editor-viewer > .ResizableGrid--col-sizer { width: 6px; background: transparent; cursor: col-resize; transition: background-color 120ms; }
   .playground-page .shinylive-container.editor-viewer > .ResizableGrid--col-sizer:hover,
   .playground-page .shinylive-container.editor-viewer > .ResizableGrid--col-sizer:focus-visible { background: rgba(27, 110, 194, 0.35); }
   @media (max-width: 720px) {
     .playground-page main.content.column-page { padding-left: 0; padding-right: 0; }
-    .playground-page .shinylive-container.editor-viewer { grid-template: "editor" 360px "viewer" 600px / 1fr !important; height: auto !important; }
+    .playground-page .shinylive-container.editor-viewer { grid-template-areas: "editor" "viewer" !important; grid-template-columns: 1fr !important; }
     .playground-page .shinylive-container.editor-viewer > .ResizableGrid--col-sizer { display: none; }
   }
   .playground-page :focus-visible { outline: 2px solid #1B6EC2; outline-offset: 2px; }
@@ -231,7 +231,7 @@
 #|   Please set `embed-resources: false` in your metadata.
 #| label: r-playground
 #| standalone: true
-#| viewerHeight: 720
+#| viewerHeight: 900
 #| components: [editor, viewer]
 
 ## file: chart.R
@@ -268,33 +268,27 @@ suppressPackageStartupMessages({
   library(shiny); library(bslib); library(ggplot2)
   library(palmerpenguins); library(DT)
 })
-app_dir &lt;- if (is.null(sys.frame(1)$ofile)) "." else dirname(sys.frame(1)$ofile)
-source(file.path(app_dir, "helpers.R"))
-source(file.path(app_dir, "chart.R"))
-panel_css &lt;- paste(readLines(file.path(app_dir, "styles.css"), warn = FALSE),
-                   collapse = "\n")
+source("helpers.R")
+source("chart.R")
+panel_css &lt;- paste(readLines("styles.css", warn = FALSE), collapse = "\n")
 
-audit_opts &lt;- list(dom = "Bt", ordering = FALSE,
-                   buttons = list("copy", "csv", "excel"),
+audit_opts &lt;- list(dom = "t",
                    columnDefs = list(list(className = "dt-left", targets = "_all")))
 
-panel_body &lt;- function(plot_id, audit_id, dl_id) {
+panel_body &lt;- function(plot_id, audit_id) {
   tagList(
-    div(class = "plot-wrap",
-        plotOutput(plot_id, height = "100%", width = "100%")),
-    div(class = "plot-actions",
-        downloadButton(dl_id, "Download chart (PNG)", class = "btn-sm")),
-    div(class = "table-responsive", DT::DTOutput(audit_id))
+    plotOutput(plot_id, height = "320px"),
+    DT::DTOutput(audit_id)
   )
 }
 
-app_ui &lt;- page_fillable(
+app_ui &lt;- page_fluid(
   tags$head(tags$style(HTML(panel_css))),
   radioButtons("level", "WCAG level:",
                choices = c("AA", "AAA"), selected = "AA", inline = TRUE),
   navset_underline(
-    nav_panel("Baseline",   panel_body("plot_before", "audit_before", "dl_before")),
-    nav_panel("Accessible", panel_body("plot_after",  "audit_after",  "dl_after"))
+    nav_panel("Baseline",   panel_body("plot_before", "audit_before")),
+    nav_panel("Accessible", panel_body("plot_after",  "audit_after"))
   )
 )
 
@@ -305,32 +299,18 @@ server &lt;- function(input, output, session) {
   output$plot_before &lt;- renderPlot(base(),       res = 96)
   output$plot_after  &lt;- renderPlot(accessible(), res = 96)
 
-  save_chart &lt;- function(plot_fn, file)
-    ggplot2::ggsave(file, plot = plot_fn(), dpi = 150,
-                    width = 7, height = 4.5, units = "in")
-
-  output$dl_before &lt;- downloadHandler(
-    filename = function() "chart_baseline.png",
-    content  = function(file) save_chart(base, file)
-  )
-  output$dl_after &lt;- downloadHandler(
-    filename = function() "chart_accessible.png",
-    content  = function(file) save_chart(accessible, file)
-  )
-
   audit_table &lt;- function(p) {
     rows &lt;- a11y_audit_actionable(a11y_audit_chart(p, level = input$level))
     DT::datatable(
       rows,
       caption = "Audit",
-      extensions = "Buttons",
       options = audit_opts, rownames = FALSE,
       class = "compact stripe hover", selection = "none"
     )
   }
 
-  output$audit_before &lt;- DT::renderDT(audit_table(base()),       server = FALSE)
-  output$audit_after  &lt;- DT::renderDT(audit_table(accessible()), server = FALSE)
+  output$audit_before &lt;- DT::renderDT(audit_table(base()))
+  output$audit_after  &lt;- DT::renderDT(audit_table(accessible()))
 }
 
 shinyApp(app_ui, server)
@@ -374,8 +354,9 @@ a11y_alt_text &lt;- function(p, text) {
 }
 
 .base_size &lt;- function(p) {
+  if (!inherits(p, "ggplot")) return(NULL)
   t &lt;- p$theme
-  if (length(t) == 0)              return(ggplot2::theme_get()$text$size)
+  if (length(t) == 0)              return(NULL)
   if (isTRUE(attr(t, "complete"))) return(t$text$size)
   (ggplot2::theme_get() + t)$text$size
 }
@@ -387,7 +368,7 @@ a11y_audit_chart &lt;- function(p, level = "AA") {
   threshold &lt;- if (level == "AAA") 14 else 12
   base_size &lt;- .base_size(p)
   text_ok   &lt;- is.numeric(base_size) &amp;&amp; base_size &gt;= threshold
-  m         &lt;- p$mapping
+  m             &lt;- p$mapping
   has_color     &lt;- !is.null(m$colour) || !is.null(m$fill)
   has_redundant &lt;- !is.null(m$shape)  || !is.null(m$linetype)
   rows &lt;- data.frame(
@@ -407,7 +388,7 @@ a11y_audit_chart &lt;- function(p, level = "AA") {
     note = c(
       if (has_alt) "alt stored on figure; emit via the renderer's &lt;img alt&gt; or save with explicit alt -- audit cannot verify the rendered output"
       else         "call a11y_alt_text() or a11y_alt_template()",
-      if (!has_color)        "no color/fill aesthetic"
+      if (!has_color)         "no color/fill aesthetic"
       else if (has_redundant) "shape or linetype redundantly encodes group"
       else                    "add direct group labels (geom_text at cluster centroids), facet by group, or aes(shape=) / aes(linetype=) to redundantly encode the group",
       "theme_a11y() / a11y_layout() set 4.5:1 text on 3:1 non-text",
@@ -431,33 +412,16 @@ a11y_audit_actionable &lt;- function(audit)
   audit[audit$status %in% c("todo", "ok"), , drop = FALSE]
 
 ## file: styles.css
-html, body { height: 100%; background: transparent; font-size: 14px; }
-body, .nav-link, .form-check-label, .control-label, table.dataTable, table.dataTable th, table.dataTable td, table.dataTable &gt; caption, .dataTables_info, .dt-info, .dataTables_paginate, .dt-paging { font-size: 14px !important; }
-.bslib-card, .card { height: 100%; border: 0 !important; box-shadow: none !important; background: transparent !important; }
+html, body { background: transparent; font-size: 14px; }
+body, .nav-link, .form-check-label, .control-label, table.dataTable, table.dataTable th, table.dataTable td, table.dataTable &gt; caption { font-size: 14px !important; }
+.bslib-card, .card { border: 0 !important; box-shadow: none !important; background: transparent !important; }
 .card-body, .bslib-card &gt; .card-body { padding: 0 !important; background: transparent !important; }
-.tab-content { display: flex; flex-direction: column; flex: 1 1 auto !important; min-height: 0; }
-.tab-pane.active { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; overflow: hidden; }
-.plot-wrap { flex: 0 0 320px; height: 320px; overflow: hidden; }
-.plot-actions { flex: 0 0 auto; padding: 4px 0 8px; }
-.plot-actions .btn { background: #fff; color: #1a1a1a; border: 1px solid #c0c0c0; border-radius: 3px; padding: 3px 8px; font-size: 12px; }
-.plot-actions .btn:hover { background: #f0f0f0; border-color: #888; }
-.plot-actions .btn:focus-visible { outline: 2px solid #1B6EC2; outline-offset: 2px; }
-.table-responsive { flex: 0 0 220px; height: 220px; min-height: 220px; overflow-y: auto; overflow-x: hidden; }
+.bslib-card, .card, .card-body, .tab-content, .tab-pane, .navset-card-body { overflow: visible !important; max-height: none !important; height: auto !important; }
 .dataTables_wrapper, .dt-container { overflow: visible !important; }
 table.dataTable { width: 100% !important; }
-table.dataTable &gt; caption { caption-side: top; text-align: left; font-weight: 600; color: #1a1a1a; padding: 0.5rem 0 0.25rem; position: sticky; top: 0; background: #fff; z-index: 2; }
-table.dataTable thead th, table.dataTable thead td { background: #f5f5f5 !important; color: #1a1a1a !important; border-bottom-color: #d0d0d0 !important; }
-table.dataTable.stripe &gt; tbody &gt; tr.odd &gt; *, table.dataTable.display &gt; tbody &gt; tr.odd &gt; * { background-color: #fafafa !important; }
-.dt-buttons { display: flex; gap: 4px; margin: 4px 0 6px; flex-wrap: wrap; }
-.dt-buttons .dt-button, .dt-buttons button.dt-button { background: #fff !important; color: #1a1a1a !important; border: 1px solid #c0c0c0 !important; border-radius: 3px !important; padding: 3px 8px !important; font-size: 12px !important; box-shadow: none !important; }
-.dt-buttons .dt-button:hover, .dt-buttons button.dt-button:hover { background: #f0f0f0 !important; border-color: #888 !important; }
-.dt-buttons .dt-button:focus-visible { outline: 2px solid #1B6EC2 !important; outline-offset: 2px !important; }
-table.dataTable.hover &gt; tbody &gt; tr:hover &gt; *, table.dataTable.hover tbody tr:hover &gt; *, table.dataTable.hover tbody tr:hover, table.dataTable.display &gt; tbody &gt; tr:hover &gt; *, table.dataTable.display tbody tr:hover &gt; *, table.dataTable.display tbody tr:hover { box-shadow: inset 0 0 0 9999px rgba(0,0,0,.035) !important; background-color: transparent !important; }
-.nav-underline .nav-link:hover, .nav-underline .nav-link:focus { border-bottom-color: transparent !important; color: inherit !important; }
-.form-check:hover, .form-check-input:hover { background-color: transparent !important; }
+table.dataTable &gt; caption { caption-side: top; text-align: left; font-weight: 600; color: #1a1a1a; padding: 0.5rem 0 0.25rem; }
+table.dataTable thead th { background: #f5f5f5 !important; color: #1a1a1a !important; }
 @media (max-width: 576px) {
-  .plot-wrap { flex: 0 0 220px; height: 220px; }
-  .table-responsive { flex: 0 0 180px; height: 180px; min-height: 180px; }
   table.dataTable { table-layout: fixed !important; }
   table.dataTable td, table.dataTable th { padding: 4px 6px; word-wrap: break-word; }
   table.dataTable th:nth-child(1), table.dataTable td:nth-child(1) { width: 22%; }
