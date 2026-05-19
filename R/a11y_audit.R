@@ -135,7 +135,12 @@ a11y_audit_summary <- function(audit) {
 }
 
 .extract_base_size <- function(p) {
-  if (inherits(p, "ggplot")) return(p$theme$text$size)
+  if (inherits(p, "ggplot")) {
+    t <- p$theme
+    if (length(t) == 0)                  return(ggplot2::theme_get()$text$size)
+    if (isTRUE(attr(t, "complete")))     return(t$text$size)
+    return((ggplot2::theme_get() + t)$text$size)
+  }
   if (inherits(p, "plotly")) return((p$x$layout %||% list())$font$size)
   NULL
 }
