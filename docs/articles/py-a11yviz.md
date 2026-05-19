@@ -55,7 +55,7 @@ show(pd.DataFrame(a11yviz.a11y_audit_actionable(audit_p)),
      table_id="audit-example", **dt_options)
 ```
 
-    2 to do, 0 ok, 4 already handled.
+    3 to do, 0 ok, 3 already handled.
 
 |  |
 |:---|
@@ -108,7 +108,7 @@ show(pd.DataFrame(a11yviz.a11y_audit_actionable(audit_a)),
      table_id="audit-accessible", **dt_options)
 ```
 
-    1 to do, 0 ok, 5 already handled.
+    1 to do, 1 ok, 4 already handled.
 
 |  |
 |:---|

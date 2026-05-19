@@ -62,7 +62,7 @@ panel_css <- paste(readLines(file.path(app_dir, "styles.css"), warn = FALSE),
                    collapse = "\n")
 
 audit_opts <- list(dom = "Bt", ordering = FALSE,
-                   buttons = list("copy", "csv", "excel", "pdf"),
+                   buttons = list("copy", "csv", "excel"),
                    columnDefs = list(list(className = "dt-left", targets = "_all")))
 
 panel_body <- function(plot_id, audit_id, dl_id) {
@@ -160,12 +160,19 @@ a11y_alt_text <- function(p, text) {
   p
 }
 
+.base_size <- function(p) {
+  t <- p$theme
+  if (length(t) == 0)              return(ggplot2::theme_get()$text$size)
+  if (isTRUE(attr(t, "complete"))) return(t$text$size)
+  (ggplot2::theme_get() + t)$text$size
+}
+
 a11y_audit_chart <- function(p, level = "AA") {
   alt_text  <- attr(p, "a11y_alt") %||% attr(p, "alt")
   has_alt   <- !is.null(alt_text) && nzchar(alt_text)
   applied   <- if (inherits(p, "ggplot")) "applied" else "unknown"
   threshold <- if (level == "AAA") 14 else 12
-  base_size <- p$theme$text$size
+  base_size <- .base_size(p)
   text_ok   <- is.numeric(base_size) && base_size >= threshold
   m         <- p$mapping
   has_color     <- !is.null(m$colour) || !is.null(m$fill)
@@ -185,7 +192,7 @@ a11y_audit_chart <- function(p, level = "AA") {
       "n/a"
     ),
     note = c(
-      if (has_alt) "alt stored on figure; emit via the renderer's <img alt>"
+      if (has_alt) "alt stored on figure; emit via the renderer's <img alt> or save with explicit alt -- audit cannot verify the rendered output"
       else         "call a11y_alt_text() or a11y_alt_template()",
       if (!has_color)        "no color/fill aesthetic"
       else if (has_redundant) "shape or linetype redundantly encodes group"
@@ -193,7 +200,7 @@ a11y_audit_chart <- function(p, level = "AA") {
       "theme_a11y() / a11y_layout() set 4.5:1 text on 3:1 non-text",
       if (!is.numeric(base_size)) sprintf("verify text size manually (min %g pt for %s)", threshold, level)
       else if (text_ok)           sprintf("base size %g pt (min %g pt)", base_size, threshold)
-      else                        sprintf("base size %g pt; bump to >= %g pt", base_size, threshold),
+      else                        sprintf("base size %g pt; bump to >= %g pt or call theme_a11y(\"%s\")", base_size, threshold, level),
       "axis lines, gridlines, error bars styled",
       "ggplot output has no interactive hover tooltips"
     ),

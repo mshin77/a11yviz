@@ -54,7 +54,7 @@ where the chart needs human attention.
 ``` r
 audit_p <- a11y_audit_chart(p)
 cat(a11y_audit_summary(audit_p))
-#> 2 to do, 0 ok, 4 already handled.
+#> 3 to do, 0 ok, 3 already handled.
 dt_show(a11y_audit_actionable(audit_p))
 ```
 

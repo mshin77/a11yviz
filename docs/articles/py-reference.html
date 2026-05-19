@@ -112,31 +112,31 @@
 <tbody>
 <tr class="odd">
 <td><code>theme_a11y(level: str = 'AA', base_family: str = 'DejaVu Sans', dark: bool = False)</code></td>
-<td>Plotnine theme with WCAG contrast settings and recommended font sizes.</td>
+<td>Accessible ggplot2 theme</td>
 </tr>
 <tr class="even">
 <td><code>scale_color_a11y(palette=None, level='AA', **kwargs)</code></td>
-<td>Categorical color scale using a WCAG-tagged palette.</td>
+<td>Accessible discrete color and fill scales</td>
 </tr>
 <tr class="odd">
 <td><code>scale_fill_a11y(palette=None, level='AA', **kwargs)</code></td>
-<td>Categorical fill scale using a WCAG-tagged palette.</td>
+<td>Accessible discrete color and fill scales</td>
 </tr>
 <tr class="even">
 <td><code>scale_color_a11y_div(palette: str = 'rdbu', **kwargs)</code></td>
-<td>Diverging color scale (gradient2).</td>
+<td>Accessible diverging color and fill scales</td>
 </tr>
 <tr class="odd">
 <td><code>scale_fill_a11y_div(palette: str = 'rdbu', **kwargs)</code></td>
-<td>Diverging fill scale (gradient2).</td>
+<td>Accessible diverging color and fill scales</td>
 </tr>
 <tr class="even">
 <td><code>scale_color_a11y_seq(palette: str = 'cividis', **kwargs)</code></td>
-<td>Sequential continuous color scale (viridis-style).</td>
+<td>Accessible sequential continuous color and fill scales</td>
 </tr>
 <tr class="odd">
 <td><code>scale_fill_a11y_seq(palette: str = 'cividis', **kwargs)</code></td>
-<td>Sequential continuous fill scale (viridis-style).</td>
+<td>Accessible sequential continuous color and fill scales</td>
 </tr>
 </tbody>
 </table></section><section class="level2"><h2 id="plotly-transforms">plotly transforms<a class="anchor" aria-label="anchor" href="#plotly-transforms"></a>
@@ -154,11 +154,11 @@
 <tbody>
 <tr class="odd">
 <td><code>a11y_layout(p, level: str = 'AA', palette: Optional[str] = 'dark2_8')</code></td>
-<td>Apply WCAG layout styling to a plotly Figure.</td>
+<td>Apply accessible layout to a plotly figure</td>
 </tr>
 <tr class="even">
 <td><code>a11y_plotly(p, level: str = 'AA', palette: Optional[str] = None, alt: Optional[str] = None, strip_title: bool = True)</code></td>
-<td>One-call wrapper applying a11y layout and optional alt text.</td>
+<td>Accessible plotly wrapper (Python version of R’s a11y_ggplotly)</td>
 </tr>
 </tbody>
 </table></section><section class="level2"><h2 id="alt-text">Alt text<a class="anchor" aria-label="anchor" href="#alt-text"></a>
@@ -176,15 +176,15 @@
 <tbody>
 <tr class="odd">
 <td><code>a11y_alt_text(p, text: str)</code></td>
-<td>Attach alt text to a figure for screen readers and audits.</td>
+<td>Add alt text to a plot</td>
 </tr>
 <tr class="even">
 <td><code>a11y_alt_template(p) -&gt; str</code></td>
-<td>Return a sentence scaffold pre-filled with chart type and axis labels.</td>
+<td>Generate a deterministic alt-text template for a plot</td>
 </tr>
 <tr class="odd">
 <td><code>a11y_describe(p, backend: Callable[[dict], str], attach: bool = True)</code></td>
-<td>Call <code>backend(context)</code> to draft alt text and optionally attach it.</td>
+<td>Generate alt text via a user-supplied LLM backend</td>
 </tr>
 </tbody>
 </table></section><section class="level2"><h2 id="palettes">Palettes<a class="anchor" aria-label="anchor" href="#palettes"></a>
@@ -202,27 +202,27 @@
 <tbody>
 <tr class="odd">
 <td><code>a11y_palette(name: str = 'dark2_8', n: Optional[int] = None, bg: Optional[str] = None) -&gt; list[str]</code></td>
-<td>Return hex codes for a categorical palette.</td>
+<td>Discrete color palette (categorical)</td>
 </tr>
 <tr class="even">
 <td><code>a11y_palette_div(name: str = 'rdbu') -&gt; dict</code></td>
-<td>Return low/mid/high anchor colors for a diverging gradient.</td>
+<td>Diverging palette</td>
 </tr>
 <tr class="odd">
 <td><code>a11y_palette_seq(name: str = 'cividis', n: Optional[int] = None)</code></td>
-<td>Return a viridis-style spec or, with <code>n</code>, n sampled hex codes.</td>
+<td>Sequential continuous palette</td>
 </tr>
 <tr class="even">
 <td><code>a11y_palette_info(name: str = 'dark2_8') -&gt; dict</code></td>
-<td>Return the full spec for a palette.</td>
+<td>Discrete palette metadata</td>
 </tr>
 <tr class="odd">
 <td><code>a11y_palette_list(type: Optional[str] = None) -&gt; list[dict]</code></td>
-<td>List discrete, diverging, and sequential palettes; filter by <code>type</code> if set.</td>
+<td>List available palettes</td>
 </tr>
 <tr class="even">
 <td><code>a11y_show_palette(name: str = 'dark2_8', bg: str = '#ffffff', level: str = 'AA')</code></td>
-<td>Render a swatch grid with contrast ratios for each palette color.</td>
+<td>Visualize a palette with WCAG contrast overlay</td>
 </tr>
 </tbody>
 </table></section><section class="level2"><h2 id="audits-and-checks">Audits and checks<a class="anchor" aria-label="anchor" href="#audits-and-checks"></a>
@@ -240,63 +240,63 @@
 <tbody>
 <tr class="odd">
 <td><code>a11y_audit(p, level: str = 'AA') -&gt; list[dict]</code></td>
-<td>Return per-criterion status rows (chart + document).</td>
+<td>Chart + document accessibility audit</td>
 </tr>
 <tr class="even">
 <td><code>a11y_audit_chart(p, level: str = 'AA') -&gt; list[dict]</code></td>
-<td>Return chart-relevant audit rows for a plotly Figure or plotnine plot.</td>
+<td>Chart-only accessibility audit</td>
 </tr>
 <tr class="odd">
 <td><code>a11y_audit_doc(level: str = 'AA') -&gt; list[dict]</code></td>
-<td>Return host-document audit rows (identical at AA and AAA).</td>
+<td>Document-level accessibility audit</td>
 </tr>
 <tr class="even">
 <td><code>a11y_audit_actionable(audit: list[dict]) -&gt; list[dict]</code></td>
-<td>Return rows with status ‘todo’ or ‘ok’ – the chart author’s decisions.</td>
+<td>Actionable rows from an audit</td>
 </tr>
 <tr class="odd">
 <td><code>a11y_audit_summary(audit: list[dict]) -&gt; str</code></td>
-<td>Return a one-line count by status.</td>
+<td>One-line summary of an audit</td>
 </tr>
 <tr class="even">
 <td><code>a11y_rubric(level: Optional[str] = None) -&gt; list[dict]</code></td>
-<td>Return the chart-relevant WCAG 2.1 rubric, optionally filtered by level.</td>
+<td>WCAG 2.1 rubric for the success criteria a11yviz addresses</td>
 </tr>
 <tr class="odd">
 <td><code>a11y_check_alt_text(alt_text: Optional[str], element_type: str = 'image', decorative: bool = False, min_length: int = 10) -&gt; bool</code></td>
-<td>Return True if <code>alt_text</code> is valid for <code>element_type</code>; warn otherwise.</td>
+<td>Check alt-text presence and length (WCAG 1.1.1)</td>
 </tr>
 <tr class="even">
 <td><code>a11y_check_headings(path: os.PathLike, min_chars: int = 3) -&gt; list[dict]</code></td>
-<td>Return heading hierarchy and label issues for a Markdown or HTML file.</td>
+<td>Check Markdown / Quarto / HTML heading hierarchy and labels</td>
 </tr>
 <tr class="odd">
 <td><code>a11y_check_overlap(p, bins: int = 100) -&gt; dict</code></td>
-<td>Bin scatter coordinates and report the fraction sharing a grid cell.</td>
+<td>Scatter overlap check (WCAG Success Criterion 1.3.1)</td>
 </tr>
 <tr class="even">
 <td><code>a11y_check_palette(colors: Sequence[str], bg: Union[str, Iterable[str]] = '#ffffff', level: str = 'AA', alpha: float = 1.0) -&gt; list[dict]</code></td>
-<td>Return per-color contrast rows against one or more backgrounds.</td>
+<td>Check a palette against WCAG contrast thresholds</td>
 </tr>
 <tr class="odd">
 <td><code>a11y_check_palette_size(n: int, max: int = 7) -&gt; dict</code></td>
-<td>Return a status row for the palette’s category count.</td>
+<td>Flag categorical palettes above the recommended maximum</td>
 </tr>
 <tr class="even">
 <td><code>a11y_check_readability(text: Union[str, os.PathLike]) -&gt; dict</code></td>
-<td>Return sentences, words, syllables, FK grade, and FK reading ease.</td>
+<td>Estimate reading level of prose</td>
 </tr>
 <tr class="odd">
 <td><code>a11y_check_separability(colors: Sequence[str], min_ratio: float = 3.0) -&gt; list[dict]</code></td>
-<td>Return per-pair contrast rows; pairs below <code>min_ratio</code> get status ‘todo’.</td>
+<td>Flag color pairs below the WCAG 2.1 Success Criterion 1.4.11 contrast threshold</td>
 </tr>
 <tr class="even">
 <td><code>a11y_check_tabindex(tabindex: float = 0) -&gt; bool</code></td>
-<td>Return True if <code>tabindex</code> is a numeric value &lt;= 100; warn otherwise.</td>
+<td>Check that a tabindex value follows WCAG 2.1.1</td>
 </tr>
 <tr class="odd">
 <td><code>a11y_plotly_sequences(bg: str = '#ffffff', level: str = 'AA') -&gt; list[dict]</code></td>
-<td>Return contrast statistics for plotly’s built-in discrete sequences.</td>
+<td>Audit plotly’s built-in discrete color sequences</td>
 </tr>
 </tbody>
 </table></section><section class="level2"><h2 id="shiny-and-html-helpers">Shiny and HTML helpers<a class="anchor" aria-label="anchor" href="#shiny-and-html-helpers"></a>
@@ -314,11 +314,11 @@
 <tbody>
 <tr class="odd">
 <td><code>a11y_aria_label(element_type: str, action: str, context: Optional[str] = None) -&gt; str</code></td>
-<td>Return an ARIA label combining action, optional context, and element type.</td>
+<td>Build an ARIA label string</td>
 </tr>
 <tr class="even">
 <td><code>a11y_announce(text: str) -&gt; str</code></td>
-<td></td>
+<td>Announce a status message to assistive technology</td>
 </tr>
 </tbody>
 </table></section><section class="level2"><h2 id="wrappers-and-utilities">Wrappers and utilities<a class="anchor" aria-label="anchor" href="#wrappers-and-utilities"></a>
@@ -336,31 +336,31 @@
 <tbody>
 <tr class="odd">
 <td><code>make_a11y(p, level: str = 'AA', palette: str = 'dark2_8', alt: Optional[str] = None)</code></td>
-<td>Apply theme + palettes (plotnine) or layout + palette (plotly) in one call.</td>
+<td>One-shot accessibility wrapper</td>
 </tr>
 <tr class="even">
 <td><code>a11y_alpha_presets() -&gt; dict</code></td>
-<td>Return a dict of named alpha presets for chart layers.</td>
+<td>Alpha presets for chart layers</td>
 </tr>
 <tr class="odd">
 <td><code>a11y_text_spacing_ratios() -&gt; dict</code></td>
-<td>Return WCAG 1.4.12 text-spacing ratios (multiples of font size).</td>
+<td>WCAG 1.4.12 text-spacing ratios (reference data)</td>
 </tr>
 <tr class="even">
 <td><code>a11y_css(mode: str = 'default') -&gt; Union[str, list[str]]</code></td>
-<td></td>
+<td>Path to the accessible CSS</td>
 </tr>
 <tr class="odd">
 <td><code>a11y_css_contents(mode: str = 'default') -&gt; str</code></td>
-<td></td>
+<td>Contents of the accessible CSS</td>
 </tr>
 <tr class="even">
 <td><code>a11y_wcag_url(criterion: Union[str, Sequence[str]])</code></td>
-<td>Return a spec deep link for one or more success criteria.</td>
+<td>WCAG 2.1 specification URL for a success criterion</td>
 </tr>
 <tr class="odd">
 <td><code>run_app(host: str = '127.0.0.1', port: int = 8000, launch_browser: bool = True) -&gt; None</code></td>
-<td></td>
+<td>Launch the local accessibility playground</td>
 </tr>
 </tbody>
 </table></section><script id="quarto-html-after-body" type="application/javascript">
