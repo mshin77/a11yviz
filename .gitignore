@@ -16,6 +16,7 @@ Rplots.pdf
 .quarto/
 _freeze/
 *.quarto_ipynb
+*.quarto_ipynb_*
 vignettes/*_files/
 vignettes/articles/*_files/
 vignettes/articles/*.html

@@ -253,6 +253,7 @@ server <- function(input, output, session) {
       rows,
       caption = "Audit",
       extensions = "Buttons",
+      style = "default",
       options = audit_opts, rownames = FALSE,
       class = "compact stripe hover", selection = "none"
     )
