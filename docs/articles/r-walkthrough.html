@@ -266,19 +266,16 @@ a11y_plot &lt;- function(level) {
 ## file: app.R
 suppressPackageStartupMessages({
   library(shiny); library(bslib); library(ggplot2)
-  library(palmerpenguins); library(DT)
+  library(palmerpenguins)
 })
 source("helpers.R")
 source("chart.R")
 panel_css &lt;- paste(readLines("styles.css", warn = FALSE), collapse = "\n")
 
-audit_opts &lt;- list(dom = "t",
-                   columnDefs = list(list(className = "dt-left", targets = "_all")))
-
 panel_body &lt;- function(plot_id, audit_id) {
   tagList(
     plotOutput(plot_id, height = "320px"),
-    DT::DTOutput(audit_id)
+    htmlOutput(audit_id)
   )
 }
 
@@ -300,17 +297,20 @@ server &lt;- function(input, output, session) {
   output$plot_after  &lt;- renderPlot(accessible(), res = 96)
 
   audit_table &lt;- function(p) {
-    rows &lt;- a11y_audit_actionable(a11y_audit_chart(p, level = input$level))
-    DT::datatable(
-      rows,
-      caption = "Audit",
-      options = audit_opts, rownames = FALSE,
-      class = "compact stripe hover", selection = "none"
-    )
+    rows      &lt;- a11y_audit_actionable(a11y_audit_chart(p, level = input$level))
+    esc       &lt;- function(x) htmltools::htmlEscape(as.character(x))
+    head_html &lt;- paste0("&lt;th&gt;", esc(names(rows)), "&lt;/th&gt;", collapse = "")
+    body_html &lt;- apply(rows, 1, function(r)
+      paste0("&lt;tr&gt;&lt;td&gt;", paste(esc(r), collapse = "&lt;/td&gt;&lt;td&gt;"), "&lt;/td&gt;&lt;/tr&gt;"))
+    HTML(paste0(
+      "&lt;table class=\"audit-table\"&gt;&lt;caption&gt;Audit&lt;/caption&gt;",
+      "&lt;thead&gt;&lt;tr&gt;", head_html, "&lt;/tr&gt;&lt;/thead&gt;",
+      "&lt;tbody&gt;", paste(body_html, collapse = ""), "&lt;/tbody&gt;&lt;/table&gt;"
+    ))
   }
 
-  output$audit_before &lt;- DT::renderDT(audit_table(base()))
-  output$audit_after  &lt;- DT::renderDT(audit_table(accessible()))
+  output$audit_before &lt;- renderUI(audit_table(base()))
+  output$audit_after  &lt;- renderUI(audit_table(accessible()))
 }
 
 shinyApp(app_ui, server)
@@ -413,21 +413,23 @@ a11y_audit_actionable &lt;- function(audit)
 
 ## file: styles.css
 html, body { background: transparent; font-size: 14px; }
-body, .nav-link, .form-check-label, .control-label, table.dataTable, table.dataTable th, table.dataTable td, table.dataTable &gt; caption { font-size: 14px !important; }
+body, .nav-link, .form-check-label, .control-label, table.audit-table, table.audit-table th, table.audit-table td, table.audit-table &gt; caption { font-size: 14px !important; }
 .bslib-card, .card { border: 0 !important; box-shadow: none !important; background: transparent !important; }
 .card-body, .bslib-card &gt; .card-body { padding: 0 !important; background: transparent !important; }
 .bslib-card, .card, .card-body, .tab-content, .tab-pane, .navset-card-body { overflow: visible !important; max-height: none !important; height: auto !important; }
-.dataTables_wrapper, .dt-container { overflow: visible !important; }
-table.dataTable { width: 100% !important; }
-table.dataTable &gt; caption { caption-side: top; text-align: left; font-weight: 600; color: #1a1a1a; padding: 0.5rem 0 0.25rem; }
-table.dataTable thead th { background: #f5f5f5 !important; color: #1a1a1a !important; }
+table.audit-table { width: 100% !important; border-collapse: collapse; }
+table.audit-table &gt; caption { caption-side: top; text-align: left; font-weight: 600; color: #1a1a1a; padding: 0.5rem 0 0.25rem; }
+table.audit-table thead th { background: #f5f5f5 !important; color: #1a1a1a !important; }
+table.audit-table th, table.audit-table td { padding: 6px 8px; border-bottom: 1px solid #e5e5e5; text-align: left; vertical-align: top; }
+table.audit-table tbody tr:nth-child(odd) { background: #fafafa; }
+table.audit-table tbody tr:hover { background: #f0f0f0; }
 @media (max-width: 576px) {
-  table.dataTable { table-layout: fixed !important; }
-  table.dataTable td, table.dataTable th { padding: 4px 6px; word-wrap: break-word; }
-  table.dataTable th:nth-child(1), table.dataTable td:nth-child(1) { width: 22%; }
-  table.dataTable th:nth-child(2), table.dataTable td:nth-child(2) { width: 50%; }
-  table.dataTable th:nth-child(3), table.dataTable td:nth-child(3) { width: 28%; }
-  table.dataTable th:nth-child(4), table.dataTable td:nth-child(4) { display: none; }
+  table.audit-table { table-layout: fixed !important; }
+  table.audit-table td, table.audit-table th { padding: 4px 6px; word-wrap: break-word; }
+  table.audit-table th:nth-child(1), table.audit-table td:nth-child(1) { width: 22%; }
+  table.audit-table th:nth-child(2), table.audit-table td:nth-child(2) { width: 50%; }
+  table.audit-table th:nth-child(3), table.audit-table td:nth-child(3) { width: 28%; }
+  table.audit-table th:nth-child(4), table.audit-table td:nth-child(4) { display: none; }
 }</code></pre>
 </div>
 </section><script id="quarto-html-after-body" type="application/javascript">

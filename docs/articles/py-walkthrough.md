@@ -63,21 +63,15 @@ def a11y_plot(level):
     )
 
 ## file: app.py
+from html import escape
 from pathlib import Path
 from shiny import App, ui, render, reactive
 import pandas as pd
-import itables
-from itables import to_html_datatable
 from a11yviz import a11y_audit_chart, a11y_audit_actionable
 
 from chart import base_plot, a11y_plot
 
-itables.options.warn_on_undocumented_option = False
-
 panel_css = (Path(__file__).parent / "styles.css").read_text()
-
-audit_opts = {"dom": "t",
-              "columnDefs": [{"className": "dt-left", "targets": "_all"}]}
 
 def panel_body(plot_id, audit_id):
     return ui.TagList(
@@ -115,11 +109,17 @@ def server(input, output, session):
         return accessible()
 
     def audit_table(p):
-        rows = a11y_audit_actionable(a11y_audit_chart(p, level=input.level()))
-        return ui.HTML(to_html_datatable(
-            pd.DataFrame(rows),
-            caption="Audit", classes="compact stripe hover",
-            showIndex=False, **audit_opts))
+        df  = pd.DataFrame(a11y_audit_actionable(a11y_audit_chart(p, level=input.level())))
+        ths = "".join(f"<th>{escape(str(c))}</th>" for c in df.columns)
+        trs = "".join(
+            "<tr>" + "".join(f"<td>{escape(str(v))}</td>" for v in row) + "</tr>"
+            for row in df.itertuples(index=False)
+        )
+        return ui.HTML(
+            '<table class="audit-table"><caption>Audit</caption>'
+            f'<thead><tr>{ths}</tr></thead>'
+            f'<tbody>{trs}</tbody></table>'
+        )
 
     @render.ui
     def audit_before():
@@ -135,25 +135,26 @@ app = App(app_ui, server)
 shiny
 plotnine
 pandas
-itables
 a11yviz==0.1.5
 
 ## file: styles.css
 html, body { background: transparent; font-size: 14px; }
-body, .nav-link, .form-check-label, .control-label, table.dataTable, table.dataTable th, table.dataTable td, table.dataTable > caption { font-size: 14px !important; }
+body, .nav-link, .form-check-label, .control-label, table.audit-table, table.audit-table th, table.audit-table td, table.audit-table > caption { font-size: 14px !important; }
 .bslib-card, .card { border: 0 !important; box-shadow: none !important; background: transparent !important; }
 .card-body, .bslib-card > .card-body { padding: 0 !important; background: transparent !important; }
 .bslib-card, .card, .card-body, .tab-content, .tab-pane, .navset-card-body { overflow: visible !important; max-height: none !important; height: auto !important; }
-.dataTables_wrapper, .dt-container { overflow: visible !important; }
-table.dataTable { width: 100% !important; }
-table.dataTable > caption { caption-side: top; text-align: left; font-weight: 600; color: #1a1a1a; padding: 0.5rem 0 0.25rem; }
-table.dataTable thead th { background: #f5f5f5 !important; color: #1a1a1a !important; }
+table.audit-table { width: 100% !important; border-collapse: collapse; }
+table.audit-table > caption { caption-side: top; text-align: left; font-weight: 600; color: #1a1a1a; padding: 0.5rem 0 0.25rem; }
+table.audit-table thead th { background: #f5f5f5 !important; color: #1a1a1a !important; }
+table.audit-table th, table.audit-table td { padding: 6px 8px; border-bottom: 1px solid #e5e5e5; text-align: left; vertical-align: top; }
+table.audit-table tbody tr:nth-child(odd) { background: #fafafa; }
+table.audit-table tbody tr:hover { background: #f0f0f0; }
 @media (max-width: 576px) {
-  table.dataTable { table-layout: fixed !important; }
-  table.dataTable td, table.dataTable th { padding: 4px 6px; word-wrap: break-word; }
-  table.dataTable th:nth-child(1), table.dataTable td:nth-child(1) { width: 22%; }
-  table.dataTable th:nth-child(2), table.dataTable td:nth-child(2) { width: 50%; }
-  table.dataTable th:nth-child(3), table.dataTable td:nth-child(3) { width: 28%; }
-  table.dataTable th:nth-child(4), table.dataTable td:nth-child(4) { display: none; }
+  table.audit-table { table-layout: fixed !important; }
+  table.audit-table td, table.audit-table th { padding: 4px 6px; word-wrap: break-word; }
+  table.audit-table th:nth-child(1), table.audit-table td:nth-child(1) { width: 22%; }
+  table.audit-table th:nth-child(2), table.audit-table td:nth-child(2) { width: 50%; }
+  table.audit-table th:nth-child(3), table.audit-table td:nth-child(3) { width: 28%; }
+  table.audit-table th:nth-child(4), table.audit-table td:nth-child(4) { display: none; }
 }
 ```
