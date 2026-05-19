@@ -221,7 +221,7 @@ app_dir   = Path(__file__).parent
 panel_css = (app_dir / "styles.css").read_text()
 
 audit_opts = {"dom": "Bt", "ordering": False,
-              "buttons": ["copy", "csv", "excel", "pdf"],
+              "buttons": ["copy", "csv", "excel"],
               "columnDefs": [{"className": "dt-left", "targets": "_all"}]}
 
 def panel_body(plot_id, audit_id, dl_id):

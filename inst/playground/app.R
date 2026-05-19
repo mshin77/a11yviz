@@ -9,7 +9,7 @@ penguins <- na.omit(penguins)
 
 dt_options <- list(
   dom        = "Bfrtip",
-  buttons    = c("copy", "csv", "excel", "pdf"),
+  buttons    = c("copy", "csv", "excel"),
   pageLength = 10,
   scrollX    = TRUE,
   autoWidth  = TRUE

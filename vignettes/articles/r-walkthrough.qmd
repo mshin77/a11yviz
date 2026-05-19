@@ -204,7 +204,7 @@ panel_css <- paste(readLines(file.path(app_dir, "styles.css"), warn = FALSE),
                    collapse = "\n")
 
 audit_opts <- list(dom = "Bt", ordering = FALSE,
-                   buttons = list("copy", "csv", "excel", "pdf"),
+                   buttons = list("copy", "csv", "excel"),
                    columnDefs = list(list(className = "dt-left", targets = "_all")))
 
 panel_body <- function(plot_id, audit_id, dl_id) {
