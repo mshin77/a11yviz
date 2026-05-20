@@ -87,6 +87,7 @@ One-shot helpers and resource paths.
 | Function | Description |
 |----|----|
 | `make_a11y(p, level = "AA", palette = "dark2_8", alt = NULL)` | One-shot accessibility wrapper |
+| `a11y_minimum(p, alt = NULL, level = "AA")` | Layer minimum accessibility onto a chart |
 | [`a11y_alpha_presets()`](https://mshin77.github.io/a11yviz/reference/a11y_alpha_presets.md) | Alpha presets for chart layers |
 | [`a11y_text_spacing_ratios()`](https://mshin77.github.io/a11yviz/reference/a11y_text_spacing_ratios.md) | WCAG 1.4.12 text-spacing ratios (reference data) |
 | `a11y_css(mode = c("default", "shiny"))` | Path to the accessible CSS |

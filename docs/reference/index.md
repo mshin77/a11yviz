@@ -104,6 +104,8 @@ One-shot helpers and resource paths
 
 - [`make_a11y()`](https://mshin77.github.io/a11yviz/reference/make_a11y.md)
   : One-shot accessibility wrapper
+- [`a11y_minimum()`](https://mshin77.github.io/a11yviz/reference/a11y_minimum.md)
+  : Layer minimum accessibility onto a chart
 - [`a11y_alpha_presets()`](https://mshin77.github.io/a11yviz/reference/a11y_alpha_presets.md)
   : Alpha presets for chart layers
 - [`a11y_text_spacing_ratios()`](https://mshin77.github.io/a11yviz/reference/a11y_text_spacing_ratios.md)

@@ -31,7 +31,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">a11yviz</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.1.5</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.1.6</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -242,9 +242,9 @@
 # Edit the chart. Re-run (Ctrl+Shift+Enter) to update both panels and the audit.
 
 from plotnine import (ggplot, aes, geom_point, labs,
-                      scale_fill_manual, scale_shape_manual, theme)
+                      scale_color_manual, theme)
 from plotnine.data import penguins
-from a11yviz import a11y_palette, theme_a11y, a11y_alt_text
+from a11yviz import a11y_palette, theme_a11y, a11y_alt_text, a11y_minimum
 
 penguins = penguins.dropna()
 
@@ -255,20 +255,23 @@ def base_plot():
         + labs(title="Penguins (default plotnine)")
     )
 
+def minimum_plot(level):
+    return a11y_minimum(
+        base_plot(), level=level,
+        alt="Penguin body mass vs flipper length, retrofit with alt text and minimum text size.",
+    )
+
 def a11y_plot(level):
     pal_name = "aaa_5" if level == "AAA" else "dark2_8"
     palette  = a11y_palette(pal_name, n=penguins["species"].nunique())
-    pt_size  = 3.5 if level == "AAA" else 3
+    pt_size  = 2.5 if level == "AAA" else 2
     p = (
-        ggplot(penguins, aes("flipper_length_mm", "body_mass_g",
-                              fill="species", shape="species"))
-        + geom_point(size=pt_size, stroke=0.7, color="white")
-        + scale_fill_manual(values=palette)
-        + scale_shape_manual(values=[21, 24, 22])
+        ggplot(penguins, aes("flipper_length_mm", "body_mass_g", color="species"))
+        + geom_point(size=pt_size, alpha=0.85)
+        + scale_color_manual(values=palette)
         + theme_a11y(level=level)
         + labs(title="Penguins (theme_a11y + a11y_palette)",
-               x="Flipper length (mm)", y="Body mass (g)",
-               fill="Species", shape="Species")
+               x="Flipper length (mm)", y="Body mass (g)", color="Species")
         + theme(legend_position="top")
     )
     return a11y_alt_text(
@@ -282,7 +285,7 @@ from shiny import App, ui, render, reactive
 import pandas as pd
 from a11yviz import a11y_audit_chart, a11y_audit_actionable
 
-from chart import base_plot, a11y_plot
+from chart import base_plot, minimum_plot, a11y_plot
 
 panel_css = (Path(__file__).parent / "styles.css").read_text()
 
@@ -299,8 +302,9 @@ app_ui = ui.page_fluid(
         choices=["AA", "AAA"], selected="AA", inline=True,
     ),
     ui.navset_underline(
-        ui.nav_panel("Baseline",   panel_body("plot_before", "audit_before")),
-        ui.nav_panel("Accessible", panel_body("plot_after",  "audit_after")),
+        ui.nav_panel("Baseline",   panel_body("plot_before",  "audit_before")),
+        ui.nav_panel("Minimum",    panel_body("plot_minimum", "audit_minimum")),
+        ui.nav_panel("Accessible", panel_body("plot_after",   "audit_after")),
     ),
 )
 
@@ -310,12 +314,20 @@ def server(input, output, session):
         return base_plot()
 
     @reactive.calc
+    def minimum():
+        return minimum_plot(input.level())
+
+    @reactive.calc
     def accessible():
         return a11y_plot(input.level())
 
     @render.plot
     def plot_before():
         return base()
+
+    @render.plot
+    def plot_minimum():
+        return minimum()
 
     @render.plot
     def plot_after():
@@ -339,6 +351,10 @@ def server(input, output, session):
         return audit_table(base())
 
     @render.ui
+    def audit_minimum():
+        return audit_table(minimum())
+
+    @render.ui
     def audit_after():
         return audit_table(accessible())
 
@@ -348,7 +364,7 @@ app = App(app_ui, server)
 shiny
 plotnine
 pandas
-a11yviz==0.1.5
+a11yviz==0.1.6
 
 ## file: styles.css
 html, body { background: transparent; font-size: 14px; }

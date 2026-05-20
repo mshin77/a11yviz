@@ -47,8 +47,9 @@ groups = [
      ["a11y_aria_label", "a11y_announce"]),
     ("Wrappers and utilities",
      "One-shot helpers and resource paths.",
-     ["make_a11y", "a11y_alpha_presets", "a11y_text_spacing_ratios",
-      "a11y_css", "a11y_css_contents", "a11y_wcag_url", "run_app"]),
+     ["make_a11y", "a11y_minimum", "a11y_alpha_presets",
+      "a11y_text_spacing_ratios", "a11y_css", "a11y_css_contents",
+      "a11y_wcag_url", "run_app"]),
 ]
 
 for header, desc, names in groups:

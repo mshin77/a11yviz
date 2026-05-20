@@ -29,7 +29,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">a11yviz</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.1.5</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.1.6</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -339,26 +339,30 @@
 <td>One-shot accessibility wrapper</td>
 </tr>
 <tr class="even">
+<td><code>a11y_minimum(p, alt: Optional[str] = None, level: str = 'AA')</code></td>
+<td>Layer minimum accessibility onto a chart</td>
+</tr>
+<tr class="odd">
 <td><code>a11y_alpha_presets() -&gt; dict</code></td>
 <td>Alpha presets for chart layers</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><code>a11y_text_spacing_ratios() -&gt; dict</code></td>
 <td>WCAG 1.4.12 text-spacing ratios (reference data)</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><code>a11y_css(mode: str = 'default') -&gt; Union[str, list[str]]</code></td>
 <td>Path to the accessible CSS</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><code>a11y_css_contents(mode: str = 'default') -&gt; str</code></td>
 <td>Contents of the accessible CSS</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><code>a11y_wcag_url(criterion: Union[str, Sequence[str]])</code></td>
 <td>WCAG 2.1 specification URL for a success criterion</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><code>run_app(host: str = '127.0.0.1', port: int = 8000, launch_browser: bool = True) -&gt; None</code></td>
 <td>Launch the local accessibility playground</td>
 </tr>

@@ -12,13 +12,13 @@ Source:
 [`DESCRIPTION`](https://github.com/mshin77/a11yviz/blob/HEAD/DESCRIPTION)
 
 Shin M (2026). *a11yviz: Accessibility Toolkit for 'ggplot2', 'plotly',
-and 'Quarto'*. R package version 0.1.5,
+and 'Quarto'*. R package version 0.1.6,
 <https://mshin77.github.io/a11yviz>.
 
     @Manual{,
       title = {a11yviz: Accessibility Toolkit for 'ggplot2', 'plotly', and 'Quarto'},
       author = {Mikyung Shin},
       year = {2026},
-      note = {R package version 0.1.5},
+      note = {R package version 0.1.6},
       url = {https://mshin77.github.io/a11yviz},
     }

@@ -55,11 +55,11 @@ a11y_alt_text(p, "Scatter of penguin body mass vs flipper length by species.")
 ## Citation
 
 Shin, M. (2026). *a11yviz: Accessibility toolkit for ggplot2, plotly,
-and Quarto* (R package version 0.1.5).
+and Quarto* (R package version 0.1.6).
 <https://mshin77.github.io/a11yviz>
 
 Shin, M. (2026). *a11yviz: Accessibility toolkit for plotnine, plotly,
-and Quarto* (Python package version 0.1.5).
+and Quarto* (Python package version 0.1.6).
 <https://github.com/mshin77/a11yviz-py>
 
 # Package index
@@ -168,6 +168,8 @@ One-shot helpers and resource paths
 
 - [`make_a11y()`](https://mshin77.github.io/a11yviz/reference/make_a11y.md)
   : One-shot accessibility wrapper
+- [`a11y_minimum()`](https://mshin77.github.io/a11yviz/reference/a11y_minimum.md)
+  : Layer minimum accessibility onto a chart
 - [`a11y_alpha_presets()`](https://mshin77.github.io/a11yviz/reference/a11y_alpha_presets.md)
   : Alpha presets for chart layers
 - [`a11y_text_spacing_ratios()`](https://mshin77.github.io/a11yviz/reference/a11y_text_spacing_ratios.md)

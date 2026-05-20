@@ -1,9 +1,15 @@
 # Changelog
 
+## a11yviz 0.1.6
+
+- A lighter helper adds alt text and lifts small fonts, leaving palette
+  and theme alone.
+- Playground adds a tab that uses the lighter helper.
+- Audit accepts a direct text label as redundant group encoding.
+
 ## a11yviz 0.1.5
 
 - Playground opens on a short chart file users can edit directly.
-- Accessible chart shows a label at each species center.
 
 ## a11yviz 0.1.4
 

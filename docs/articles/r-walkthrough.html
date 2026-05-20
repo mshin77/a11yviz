@@ -31,7 +31,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">a11yviz</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.1.5</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.1.6</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -249,19 +249,21 @@ base_plot &lt;- function() {
     labs(title = "Penguins (default ggplot)")
 }
 
+minimum_plot &lt;- function(level) {
+  a11y_minimum(base_plot(), level = level,
+               alt = "Penguin body mass vs flipper length, retrofit with alt text and minimum text size.")
+}
+
 a11y_plot &lt;- function(level) {
   pal_name &lt;- if (level == "AAA") "aaa_5" else "dark2_8"
   palette  &lt;- a11y_palette(pal_name, n = nlevels(droplevels(penguins$species)))
-  pt_size  &lt;- if (level == "AAA") 3.5 else 3
-  p &lt;- ggplot(penguins, aes(flipper_length_mm, body_mass_g,
-                            fill = species, shape = species)) +
-    geom_point(size = pt_size, stroke = 0.7, color = "white") +
-    scale_fill_manual(values = palette) +
-    scale_shape_manual(values = c(21, 24, 22)) +
+  pt_size  &lt;- if (level == "AAA") 2.5 else 2
+  p &lt;- ggplot(penguins, aes(flipper_length_mm, body_mass_g, color = species)) +
+    geom_point(size = pt_size, alpha = 0.85) +
+    scale_color_manual(values = palette) +
     theme_a11y(level = level) +
     labs(title = "Penguins (theme_a11y + a11y_palette)",
-         x = "Flipper length (mm)", y = "Body mass (g)",
-         fill = "Species", shape = "Species") +
+         x = "Flipper length (mm)", y = "Body mass (g)", color = "Species") +
     theme(legend.position = "top")
   a11y_alt_text(p, "Penguin body mass vs flipper length by species, accessible chart.")
 }
@@ -287,17 +289,20 @@ app_ui &lt;- page_fluid(
   radioButtons("level", "WCAG level:",
                choices = c("AA", "AAA"), selected = "AA", inline = TRUE),
   navset_underline(
-    nav_panel("Baseline",   panel_body("plot_before", "audit_before")),
-    nav_panel("Accessible", panel_body("plot_after",  "audit_after"))
+    nav_panel("Baseline",   panel_body("plot_before",  "audit_before")),
+    nav_panel("Minimum",    panel_body("plot_minimum", "audit_minimum")),
+    nav_panel("Accessible", panel_body("plot_after",   "audit_after"))
   )
 )
 
 server &lt;- function(input, output, session) {
   base       &lt;- reactive(base_plot())
+  minimum    &lt;- reactive(minimum_plot(input$level))
   accessible &lt;- reactive(a11y_plot(input$level))
 
-  output$plot_before &lt;- renderPlot(base(),       res = 96)
-  output$plot_after  &lt;- renderPlot(accessible(), res = 96)
+  output$plot_before  &lt;- renderPlot(base(),       res = 96)
+  output$plot_minimum &lt;- renderPlot(minimum(),    res = 96)
+  output$plot_after   &lt;- renderPlot(accessible(), res = 96)
 
   audit_table &lt;- function(p) {
     rows      &lt;- a11y_audit_actionable(a11y_audit_chart(p, level = input$level))
@@ -312,8 +317,9 @@ server &lt;- function(input, output, session) {
     ))
   }
 
-  output$audit_before &lt;- renderUI(audit_table(base()))
-  output$audit_after  &lt;- renderUI(audit_table(accessible()))
+  output$audit_before  &lt;- renderUI(audit_table(base()))
+  output$audit_minimum &lt;- renderUI(audit_table(minimum()))
+  output$audit_after   &lt;- renderUI(audit_table(accessible()))
 }
 
 shinyApp(app_ui, server)
@@ -356,6 +362,15 @@ a11y_alt_text &lt;- function(p, text) {
   p
 }
 
+a11y_minimum &lt;- function(p, alt = NULL, level = "AA") {
+  threshold &lt;- if (level == "AAA") 14 else 12
+  size      &lt;- .base_size(p)
+  if (!is.null(alt) &amp;&amp; nzchar(alt)) p &lt;- a11y_alt_text(p, alt)
+  if (is.numeric(size) &amp;&amp; size &lt; threshold)
+    p &lt;- p + ggplot2::theme(text = ggplot2::element_text(size = threshold))
+  p
+}
+
 .base_size &lt;- function(p) {
   if (!inherits(p, "ggplot")) return(NULL)
   t &lt;- p$theme
@@ -371,9 +386,17 @@ a11y_audit_chart &lt;- function(p, level = "AA") {
   threshold &lt;- if (level == "AAA") 14 else 12
   base_size &lt;- .base_size(p)
   text_ok   &lt;- is.numeric(base_size) &amp;&amp; base_size &gt;= threshold
-  m             &lt;- p$mapping
-  has_color     &lt;- !is.null(m$colour) || !is.null(m$fill)
-  has_redundant &lt;- !is.null(m$shape)  || !is.null(m$linetype)
+  m         &lt;- p$mapping
+  has_color &lt;- !is.null(m$colour) || !is.null(m$fill)
+  has_shape &lt;- !is.null(m$shape)  || !is.null(m$linetype)
+  has_label &lt;- any(vapply(p$layers, function(l)
+    inherits(l$geom, c("GeomText", "GeomLabel")) &amp;&amp;
+      !is.null((l$mapping %||% list())$label), logical(1)))
+  has_redundant &lt;- has_shape || has_label
+  redundant_note &lt;-
+    if (has_shape)      "shape or linetype redundantly encodes group"
+    else if (has_label) "direct text labels redundantly identify groups"
+    else                "add direct group labels (geom_text at cluster centroids), facet by group, or aes(shape=) / aes(linetype=) to redundantly encode the group"
   rows &lt;- data.frame(
     criterion = c("1.1.1", "1.4.1", "1.4.3", "1.4.4", "1.4.11", "1.4.13"),
     check = c("Alt text on figure", "Redundant group encoding",
@@ -391,9 +414,7 @@ a11y_audit_chart &lt;- function(p, level = "AA") {
     note = c(
       if (has_alt) "alt stored on figure; emit via the renderer's &lt;img alt&gt; or save with explicit alt -- audit cannot verify the rendered output"
       else         "call a11y_alt_text() or a11y_alt_template()",
-      if (!has_color)         "no color/fill aesthetic"
-      else if (has_redundant) "shape or linetype redundantly encodes group"
-      else                    "add direct group labels (geom_text at cluster centroids), facet by group, or aes(shape=) / aes(linetype=) to redundantly encode the group",
+      if (!has_color) "no color/fill aesthetic" else redundant_note,
       "theme_a11y() / a11y_layout() set 4.5:1 text on 3:1 non-text",
       if (!is.numeric(base_size)) sprintf("verify text size manually (min %g pt for %s)", threshold, level)
       else if (text_ok)           sprintf("base size %g pt (min %g pt)", base_size, threshold)

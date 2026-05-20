@@ -163,14 +163,18 @@ a11y_audit_summary <- function(audit) {
   if (!inherits(p, "ggplot"))
     return(list(status = "manual",
                 note   = "verify category encoding is not color-only"))
-  m <- p$mapping
-  has_color     <- !is.null(m$colour) || !is.null(m$fill)
-  has_redundant <- !is.null(m$shape)  || !is.null(m$linetype)
+  m         <- p$mapping
+  has_color <- !is.null(m$colour) || !is.null(m$fill)
   if (!has_color)
     return(list(status = "n/a", note = "no color/fill aesthetic"))
+  has_shape <- !is.null(m$shape) || !is.null(m$linetype)
+  has_label <- any(vapply(p$layers, function(l)
+    inherits(l$geom, c("GeomText", "GeomLabel")) &&
+      !is.null((l$mapping %||% list())$label), logical(1)))
   list(
-    status = if (has_redundant) "ok" else "todo",
-    note   = if (has_redundant) "shape or linetype redundantly encodes group"
+    status = if (has_shape || has_label) "ok" else "todo",
+    note   = if (has_shape)      "shape or linetype redundantly encodes group"
+             else if (has_label) "direct text labels redundantly identify groups"
              else                "add direct group labels (geom_text at cluster centroids), facet by group, or aes(shape=) / aes(linetype=) to redundantly encode the group"
   )
 }

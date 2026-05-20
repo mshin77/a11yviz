@@ -49,7 +49,7 @@ a11y_alt_text(p, "Scatter of penguin body mass vs flipper length by species.")
 ## Citation
 
 Shin, M. (2026). *a11yviz: Accessibility toolkit for ggplot2, plotly, and
-Quarto* (R package version 0.1.5). <https://mshin77.github.io/a11yviz>
+Quarto* (R package version 0.1.6). <https://mshin77.github.io/a11yviz>
 
 Shin, M. (2026). *a11yviz: Accessibility toolkit for plotnine, plotly,
-and Quarto* (Python package version 0.1.5). <https://github.com/mshin77/a11yviz-py>
+and Quarto* (Python package version 0.1.6). <https://github.com/mshin77/a11yviz-py>

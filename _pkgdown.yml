@@ -100,6 +100,7 @@ reference:
   desc:  "One-shot helpers and resource paths"
   contents:
   - make_a11y
+  - a11y_minimum
   - a11y_alpha_presets
   - a11y_text_spacing_ratios
   - a11y_css

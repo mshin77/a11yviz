@@ -32,19 +32,21 @@ base_plot <- function() {
     labs(title = "Penguins (default ggplot)")
 }
 
+minimum_plot <- function(level) {
+  a11y_minimum(base_plot(), level = level,
+               alt = "Penguin body mass vs flipper length, retrofit with alt text and minimum text size.")
+}
+
 a11y_plot <- function(level) {
   pal_name <- if (level == "AAA") "aaa_5" else "dark2_8"
   palette  <- a11y_palette(pal_name, n = nlevels(droplevels(penguins$species)))
-  pt_size  <- if (level == "AAA") 3.5 else 3
-  p <- ggplot(penguins, aes(flipper_length_mm, body_mass_g,
-                            fill = species, shape = species)) +
-    geom_point(size = pt_size, stroke = 0.7, color = "white") +
-    scale_fill_manual(values = palette) +
-    scale_shape_manual(values = c(21, 24, 22)) +
+  pt_size  <- if (level == "AAA") 2.5 else 2
+  p <- ggplot(penguins, aes(flipper_length_mm, body_mass_g, color = species)) +
+    geom_point(size = pt_size, alpha = 0.85) +
+    scale_color_manual(values = palette) +
     theme_a11y(level = level) +
     labs(title = "Penguins (theme_a11y + a11y_palette)",
-         x = "Flipper length (mm)", y = "Body mass (g)",
-         fill = "Species", shape = "Species") +
+         x = "Flipper length (mm)", y = "Body mass (g)", color = "Species") +
     theme(legend.position = "top")
   a11y_alt_text(p, "Penguin body mass vs flipper length by species, accessible chart.")
 }
@@ -70,17 +72,20 @@ app_ui <- page_fluid(
   radioButtons("level", "WCAG level:",
                choices = c("AA", "AAA"), selected = "AA", inline = TRUE),
   navset_underline(
-    nav_panel("Baseline",   panel_body("plot_before", "audit_before")),
-    nav_panel("Accessible", panel_body("plot_after",  "audit_after"))
+    nav_panel("Baseline",   panel_body("plot_before",  "audit_before")),
+    nav_panel("Minimum",    panel_body("plot_minimum", "audit_minimum")),
+    nav_panel("Accessible", panel_body("plot_after",   "audit_after"))
   )
 )
 
 server <- function(input, output, session) {
   base       <- reactive(base_plot())
+  minimum    <- reactive(minimum_plot(input$level))
   accessible <- reactive(a11y_plot(input$level))
 
-  output$plot_before <- renderPlot(base(),       res = 96)
-  output$plot_after  <- renderPlot(accessible(), res = 96)
+  output$plot_before  <- renderPlot(base(),       res = 96)
+  output$plot_minimum <- renderPlot(minimum(),    res = 96)
+  output$plot_after   <- renderPlot(accessible(), res = 96)
 
   audit_table <- function(p) {
     rows      <- a11y_audit_actionable(a11y_audit_chart(p, level = input$level))
@@ -95,8 +100,9 @@ server <- function(input, output, session) {
     ))
   }
 
-  output$audit_before <- renderUI(audit_table(base()))
-  output$audit_after  <- renderUI(audit_table(accessible()))
+  output$audit_before  <- renderUI(audit_table(base()))
+  output$audit_minimum <- renderUI(audit_table(minimum()))
+  output$audit_after   <- renderUI(audit_table(accessible()))
 }
 
 shinyApp(app_ui, server)
@@ -139,6 +145,15 @@ a11y_alt_text <- function(p, text) {
   p
 }
 
+a11y_minimum <- function(p, alt = NULL, level = "AA") {
+  threshold <- if (level == "AAA") 14 else 12
+  size      <- .base_size(p)
+  if (!is.null(alt) && nzchar(alt)) p <- a11y_alt_text(p, alt)
+  if (is.numeric(size) && size < threshold)
+    p <- p + ggplot2::theme(text = ggplot2::element_text(size = threshold))
+  p
+}
+
 .base_size <- function(p) {
   if (!inherits(p, "ggplot")) return(NULL)
   t <- p$theme
@@ -154,9 +169,17 @@ a11y_audit_chart <- function(p, level = "AA") {
   threshold <- if (level == "AAA") 14 else 12
   base_size <- .base_size(p)
   text_ok   <- is.numeric(base_size) && base_size >= threshold
-  m             <- p$mapping
-  has_color     <- !is.null(m$colour) || !is.null(m$fill)
-  has_redundant <- !is.null(m$shape)  || !is.null(m$linetype)
+  m         <- p$mapping
+  has_color <- !is.null(m$colour) || !is.null(m$fill)
+  has_shape <- !is.null(m$shape)  || !is.null(m$linetype)
+  has_label <- any(vapply(p$layers, function(l)
+    inherits(l$geom, c("GeomText", "GeomLabel")) &&
+      !is.null((l$mapping %||% list())$label), logical(1)))
+  has_redundant <- has_shape || has_label
+  redundant_note <-
+    if (has_shape)      "shape or linetype redundantly encodes group"
+    else if (has_label) "direct text labels redundantly identify groups"
+    else                "add direct group labels (geom_text at cluster centroids), facet by group, or aes(shape=) / aes(linetype=) to redundantly encode the group"
   rows <- data.frame(
     criterion = c("1.1.1", "1.4.1", "1.4.3", "1.4.4", "1.4.11", "1.4.13"),
     check = c("Alt text on figure", "Redundant group encoding",
@@ -174,9 +197,7 @@ a11y_audit_chart <- function(p, level = "AA") {
     note = c(
       if (has_alt) "alt stored on figure; emit via the renderer's <img alt> or save with explicit alt -- audit cannot verify the rendered output"
       else         "call a11y_alt_text() or a11y_alt_template()",
-      if (!has_color)         "no color/fill aesthetic"
-      else if (has_redundant) "shape or linetype redundantly encodes group"
-      else                    "add direct group labels (geom_text at cluster centroids), facet by group, or aes(shape=) / aes(linetype=) to redundantly encode the group",
+      if (!has_color) "no color/fill aesthetic" else redundant_note,
       "theme_a11y() / a11y_layout() set 4.5:1 text on 3:1 non-text",
       if (!is.numeric(base_size)) sprintf("verify text size manually (min %g pt for %s)", threshold, level)
       else if (text_ok)           sprintf("base size %g pt (min %g pt)", base_size, threshold)
