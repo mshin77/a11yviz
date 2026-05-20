@@ -101,7 +101,11 @@
     <meta name="shinylive:serviceworker_dir" content=".">
 <script>document.documentElement.classList.add("playground-page");</script><style>
   .playground-page main.content.column-page { grid-column: screen-start / screen-end !important; max-width: none !important; width: auto !important; padding-left: 1rem; padding-right: 1rem; }
-  .playground-page .shinylive-container.editor-viewer { width: 100% !important; max-width: none !important; gap: 0 !important; grid-template-areas: "editor viewer" !important; }
+  .playground-page div.shinylive-wrapper, .playground-page div.output-content { background-color: transparent !important; border: 0 !important; box-shadow: none !important; border-radius: 0 !important; margin: 0 !important; }
+  .playground-page .shinylive-container { background-color: transparent !important; min-height: 0 !important; }
+  .playground-page .shinylive-container.editor-viewer { width: 100% !important; max-width: none !important; gap: 0 !important; grid-template-areas: "editor viewer" !important; height: calc(100vh - 220px) !important; min-height: 560px; max-height: 1100px; }
+  .playground-page .shinylive-editor, .playground-page .shinylive-viewer { height: 100% !important; min-height: 0 !important; }
+  .playground-page .shinylive-editor .editor-container, .playground-page .shinylive-editor .cm-editor { height: 100% !important; }
   .playground-page .shinylive-container.editor-viewer > .ResizableGrid--col-sizer { width: 6px; background: transparent; cursor: col-resize; transition: background-color 120ms; }
   .playground-page .shinylive-container.editor-viewer > .ResizableGrid--col-sizer:hover,
   .playground-page .shinylive-container.editor-viewer > .ResizableGrid--col-sizer:focus-visible { background: rgba(27, 110, 194, 0.35); }
@@ -111,13 +115,19 @@
   }
   @media (max-width: 720px) {
     .playground-page main.content.column-page { padding-left: 0; padding-right: 0; }
-    .playground-page .shinylive-container.editor-viewer { grid-template-areas: "editor" "viewer" !important; grid-template-columns: 1fr !important; }
+    .playground-page .shinylive-container.editor-viewer { grid-template-areas: "editor" "viewer" !important; grid-template-columns: 1fr !important; height: auto !important; max-height: none !important; }
     .playground-page .shinylive-container.editor-viewer > .ResizableGrid--col-sizer { display: none; }
+    .playground-page .shinylive-editor { height: 58vh !important; min-height: 320px; }
+    .playground-page .shinylive-viewer { height: 78vh !important; min-height: 400px; }
+    .playground-page .editor-actions { flex-wrap: wrap !important; gap: 4px !important; padding: 4px 6px !important; row-gap: 4px !important; }
+    .playground-page .editor-actions .code-run-button { padding: 4px 8px !important; min-width: 32px !important; font-size: 12px !important; }
+    .playground-page .editor-files { overflow-x: auto !important; white-space: nowrap !important; -webkit-overflow-scrolling: touch; }
+    .playground-page .editor-files button { flex: 0 0 auto !important; }
   }
   .playground-page :focus-visible { outline: 2px solid #1B6EC2; outline-offset: 2px; }
   .playground-page table.audit-table > caption { color: #1a1a1a; }
   .playground-page .shinylive-editor .editor-actions .code-run-button.copied-flash { background: rgba(27, 110, 194, 0.18); }
-  .playground-page .shinylive-editor, .playground-page .shinylive-editor .cm-editor, .playground-page .shinylive-editor .cm-scroller, .playground-page .shinylive-viewer { border: 0 !important; box-shadow: none !important; outline: 0 !important; }
+  .playground-page .shinylive-editor, .playground-page .shinylive-editor .cm-editor, .playground-page .shinylive-editor .cm-scroller, .playground-page .shinylive-viewer { border: 0 !important; box-shadow: none !important; outline: 0 !important; background: transparent !important; }
 </style>
 <script>
   (function () {
@@ -246,25 +256,31 @@ penguins &lt;- na.omit(palmerpenguins::penguins)
 base_plot &lt;- function() {
   ggplot(penguins, aes(flipper_length_mm, body_mass_g, color = species)) +
     geom_point() +
-    labs(title = "Penguins (default ggplot)")
+    labs(title = "Penguins (default)",
+         x = "flipper_length_mm", y = "body_mass_g")
 }
 
 minimum_plot &lt;- function(level) {
-  a11y_minimum(base_plot(), level = level,
+  p &lt;- base_plot() + labs(title = sprintf("Penguins (minimum, %s)", level))
+  a11y_minimum(p, level = level,
                alt = "Penguin body mass vs flipper length, retrofit with alt text and minimum text size.")
 }
 
 a11y_plot &lt;- function(level) {
-  pal_name &lt;- if (level == "AAA") "aaa_5" else "dark2_8"
+  pal_name &lt;- switch(level, AA = "dark2_8", AAA = "aaa_5")
   palette  &lt;- a11y_palette(pal_name, n = nlevels(droplevels(penguins$species)))
-  pt_size  &lt;- if (level == "AAA") 2.5 else 2
-  p &lt;- ggplot(penguins, aes(flipper_length_mm, body_mass_g, color = species)) +
-    geom_point(size = pt_size, alpha = 0.85) +
+  pt_size  &lt;- switch(level, AA = 1.8, AAA = 2.2)
+  p &lt;- ggplot(penguins, aes(flipper_length_mm, body_mass_g,
+                            color = species, shape = species)) +
+    geom_point(size = pt_size, alpha = 0.6) +
     scale_color_manual(values = palette) +
+    scale_shape_manual(values = c(1, 2, 0)) +
     theme_a11y(level = level) +
-    labs(title = "Penguins (theme_a11y + a11y_palette)",
-         x = "Flipper length (mm)", y = "Body mass (g)", color = "Species") +
-    theme(legend.position = "top")
+    theme(plot.title = element_text(face = "bold", hjust = 0),
+          legend.position = "top") +
+    labs(title = sprintf("Penguins (accessible, %s)", level),
+         x = "Flipper length (mm)", y = "Body mass (g)",
+         color = "Species", shape = "Species")
   a11y_alt_text(p, "Penguin body mass vs flipper length by species, accessible chart.")
 }
 
@@ -374,7 +390,7 @@ a11y_minimum &lt;- function(p, alt = NULL, level = "AA") {
 .base_size &lt;- function(p) {
   if (!inherits(p, "ggplot")) return(NULL)
   t &lt;- p$theme
-  if (length(t) == 0)              return(NULL)
+  if (length(t) == 0)              return(ggplot2::theme_get()$text$size)
   if (isTRUE(attr(t, "complete"))) return(t$text$size)
   (ggplot2::theme_get() + t)$text$size
 }

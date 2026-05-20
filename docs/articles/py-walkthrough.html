@@ -101,7 +101,11 @@
     <meta name="shinylive:serviceworker_dir" content=".">
 <script>document.documentElement.classList.add("playground-page");</script><style>
   .playground-page main.content.column-page { grid-column: screen-start / screen-end !important; max-width: none !important; width: auto !important; padding-left: 1rem; padding-right: 1rem; }
-  .playground-page .shinylive-container.editor-viewer { width: 100% !important; max-width: none !important; gap: 0 !important; grid-template-areas: "editor viewer" !important; }
+  .playground-page div.shinylive-wrapper, .playground-page div.output-content { background-color: transparent !important; border: 0 !important; box-shadow: none !important; border-radius: 0 !important; margin: 0 !important; }
+  .playground-page .shinylive-container { background-color: transparent !important; min-height: 0 !important; }
+  .playground-page .shinylive-container.editor-viewer { width: 100% !important; max-width: none !important; gap: 0 !important; grid-template-areas: "editor viewer" !important; height: calc(100vh - 220px) !important; min-height: 560px; max-height: 1100px; }
+  .playground-page .shinylive-editor, .playground-page .shinylive-viewer { height: 100% !important; min-height: 0 !important; }
+  .playground-page .shinylive-editor .editor-container, .playground-page .shinylive-editor .cm-editor { height: 100% !important; }
   .playground-page .shinylive-container.editor-viewer > .ResizableGrid--col-sizer { width: 6px; background: transparent; cursor: col-resize; transition: background-color 120ms; }
   .playground-page .shinylive-container.editor-viewer > .ResizableGrid--col-sizer:hover,
   .playground-page .shinylive-container.editor-viewer > .ResizableGrid--col-sizer:focus-visible { background: rgba(27, 110, 194, 0.35); }
@@ -111,13 +115,19 @@
   }
   @media (max-width: 720px) {
     .playground-page main.content.column-page { padding-left: 0; padding-right: 0; }
-    .playground-page .shinylive-container.editor-viewer { grid-template-areas: "editor" "viewer" !important; grid-template-columns: 1fr !important; }
+    .playground-page .shinylive-container.editor-viewer { grid-template-areas: "editor" "viewer" !important; grid-template-columns: 1fr !important; height: auto !important; max-height: none !important; }
     .playground-page .shinylive-container.editor-viewer > .ResizableGrid--col-sizer { display: none; }
+    .playground-page .shinylive-editor { height: 58vh !important; min-height: 320px; }
+    .playground-page .shinylive-viewer { height: 78vh !important; min-height: 400px; }
+    .playground-page .editor-actions { flex-wrap: wrap !important; gap: 4px !important; padding: 4px 6px !important; row-gap: 4px !important; }
+    .playground-page .editor-actions .code-run-button { padding: 4px 8px !important; min-width: 32px !important; font-size: 12px !important; }
+    .playground-page .editor-files { overflow-x: auto !important; white-space: nowrap !important; -webkit-overflow-scrolling: touch; }
+    .playground-page .editor-files button { flex: 0 0 auto !important; }
   }
   .playground-page :focus-visible { outline: 2px solid #1B6EC2; outline-offset: 2px; }
   .playground-page table.audit-table > caption { color: #1a1a1a; }
   .playground-page .shinylive-editor .editor-actions .code-run-button.copied-flash { background: rgba(27, 110, 194, 0.18); }
-  .playground-page .shinylive-editor, .playground-page .shinylive-editor .cm-editor, .playground-page .shinylive-editor .cm-scroller, .playground-page .shinylive-viewer { border: 0 !important; box-shadow: none !important; outline: 0 !important; }
+  .playground-page .shinylive-editor, .playground-page .shinylive-editor .cm-editor, .playground-page .shinylive-editor .cm-scroller, .playground-page .shinylive-viewer { border: 0 !important; box-shadow: none !important; outline: 0 !important; background: transparent !important; }
 </style>
 <script>
   (function () {
@@ -242,7 +252,8 @@
 # Edit the chart. Re-run (Ctrl+Shift+Enter) to update both panels and the audit.
 
 from plotnine import (ggplot, aes, geom_point, labs,
-                      scale_color_manual, theme)
+                      scale_color_manual, scale_shape_manual,
+                      theme, element_text)
 from plotnine.data import penguins
 from a11yviz import a11y_palette, theme_a11y, a11y_alt_text, a11y_minimum
 
@@ -252,27 +263,33 @@ def base_plot():
     return (
         ggplot(penguins, aes("flipper_length_mm", "body_mass_g", color="species"))
         + geom_point()
-        + labs(title="Penguins (default plotnine)")
+        + labs(title="Penguins (default)",
+               x="flipper_length_mm", y="body_mass_g")
     )
 
 def minimum_plot(level):
+    p = base_plot() + labs(title=f"Penguins (minimum, {level})")
     return a11y_minimum(
-        base_plot(), level=level,
+        p, level=level,
         alt="Penguin body mass vs flipper length, retrofit with alt text and minimum text size.",
     )
 
 def a11y_plot(level):
-    pal_name = "aaa_5" if level == "AAA" else "dark2_8"
+    pal_name = {"AA": "dark2_8", "AAA": "aaa_5"}[level]
     palette  = a11y_palette(pal_name, n=penguins["species"].nunique())
-    pt_size  = 2.5 if level == "AAA" else 2
+    pt_size  = {"AA": 1.8, "AAA": 2.2}[level]
     p = (
-        ggplot(penguins, aes("flipper_length_mm", "body_mass_g", color="species"))
-        + geom_point(size=pt_size, alpha=0.85)
+        ggplot(penguins, aes("flipper_length_mm", "body_mass_g",
+                             color="species", shape="species"))
+        + geom_point(size=pt_size, alpha=0.6)
         + scale_color_manual(values=palette)
+        + scale_shape_manual(values=["o", "^", "s"])
         + theme_a11y(level=level)
-        + labs(title="Penguins (theme_a11y + a11y_palette)",
-               x="Flipper length (mm)", y="Body mass (g)", color="Species")
-        + theme(legend_position="top")
+        + theme(plot_title=element_text(weight="bold", ha="left"),
+                legend_position="top")
+        + labs(title=f"Penguins (accessible, {level})",
+               x="Flipper length (mm)", y="Body mass (g)",
+               color="Species", shape="Species")
     )
     return a11y_alt_text(
         p, "Penguin body mass vs flipper length by species, accessible chart."
@@ -333,8 +350,8 @@ def server(input, output, session):
     def plot_after():
         return accessible()
 
-    def audit_table(p):
-        df  = pd.DataFrame(a11y_audit_actionable(a11y_audit_chart(p, level=input.level())))
+    def audit_table(p, level):
+        df  = pd.DataFrame(a11y_audit_actionable(a11y_audit_chart(p, level=level)))
         ths = "".join(f"&lt;th&gt;{escape(str(c))}&lt;/th&gt;" for c in df.columns)
         trs = "".join(
             "&lt;tr&gt;" + "".join(f"&lt;td&gt;{escape(str(v))}&lt;/td&gt;" for v in row) + "&lt;/tr&gt;"
@@ -348,15 +365,15 @@ def server(input, output, session):
 
     @render.ui
     def audit_before():
-        return audit_table(base())
+        return audit_table(base(), input.level())
 
     @render.ui
     def audit_minimum():
-        return audit_table(minimum())
+        return audit_table(minimum(), input.level())
 
     @render.ui
     def audit_after():
-        return audit_table(accessible())
+        return audit_table(accessible(), input.level())
 
 app = App(app_ui, server)
 
