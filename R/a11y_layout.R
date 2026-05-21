@@ -20,10 +20,12 @@ a11y_layout <- function(p, level = "AA", palette = "dark2_8") {
   fz    <- rules$font_size[[level]]
   tt    <- rules$tooltip
 
+  axis_sz <- fz$axis_text %||% fz$body
   body  <- list(family = tt$font, size = fz$body, color = "#222")
   title <- list(family = tt$font, size = fz$title, color = "#222")
+  tick  <- list(family = tt$font, size = axis_sz, color = "#222")
   hover <- list(family = tt$font, size = tt$size, color = tt$text)
-  axis  <- list(tickfont = body, titlefont = title,
+  axis  <- list(tickfont = tick, titlefont = title,
                 gridcolor = "#e5e5e5", zerolinecolor = "#c0c0c0")
 
   args <- list(

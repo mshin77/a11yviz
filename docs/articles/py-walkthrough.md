@@ -25,7 +25,8 @@ right.
 # Edit the chart. Re-run (Ctrl+Shift+Enter) to update both panels and the audit.
 
 from plotnine import (ggplot, aes, geom_point, labs,
-                      scale_color_manual, theme)
+                      scale_color_manual,
+                      theme, element_text)
 from plotnine.data import penguins
 from a11yviz import a11y_palette, theme_a11y, a11y_alt_text, a11y_minimum
 
@@ -34,28 +35,35 @@ penguins = penguins.dropna()
 def base_plot():
     return (
         ggplot(penguins, aes("flipper_length_mm", "body_mass_g", color="species"))
-        + geom_point()
-        + labs(title="Penguins (default plotnine)")
+        + geom_point(size=1.0, alpha=0.45)
+        + labs(title="Penguins (default)",
+               x="flipper_length_mm", y="body_mass_g")
+        + theme(text=element_text(size=9))
     )
 
 def minimum_plot(level):
-    return a11y_minimum(
-        base_plot(), level=level,
+    threshold = {"AA": 12, "AAA": 14}[level]
+    p = base_plot() + labs(title=f"Penguins (minimum, {level})")
+    p = a11y_minimum(
+        p, level=level,
         alt="Penguin body mass vs flipper length, retrofit with alt text and minimum text size.",
     )
+    return p + theme(plot_title=element_text(size=threshold))
 
 def a11y_plot(level):
-    pal_name = "aaa_5" if level == "AAA" else "dark2_8"
+    pal_name = {"AA": "dark2_8", "AAA": "aaa_5"}[level]
     palette  = a11y_palette(pal_name, n=penguins["species"].nunique())
-    pt_size  = 2.5 if level == "AAA" else 2
+    pt_size  = {"AA": 1.8, "AAA": 2.2}[level]
     p = (
         ggplot(penguins, aes("flipper_length_mm", "body_mass_g", color="species"))
-        + geom_point(size=pt_size, alpha=0.85)
+        + geom_point(size=pt_size, alpha=0.65)
         + scale_color_manual(values=palette)
         + theme_a11y(level=level)
-        + labs(title="Penguins (theme_a11y + a11y_palette)",
-               x="Flipper length (mm)", y="Body mass (g)", color="Species")
-        + theme(legend_position="top")
+        + theme(plot_title=element_text(weight="bold", ha="left"),
+                legend_position="top")
+        + labs(title=f"Penguins (accessible, {level})",
+               x="Flipper length (mm)", y="Body mass (g)",
+               color="Species")
     )
     return a11y_alt_text(
         p, "Penguin body mass vs flipper length by species, accessible chart."
@@ -74,7 +82,7 @@ panel_css = (Path(__file__).parent / "styles.css").read_text()
 
 def panel_body(plot_id, audit_id):
     return ui.TagList(
-        ui.output_plot(plot_id, height="320px"),
+        ui.output_plot(plot_id, height="440px"),
         ui.output_ui(audit_id),
     )
 
@@ -116,8 +124,8 @@ def server(input, output, session):
     def plot_after():
         return accessible()
 
-    def audit_table(p):
-        df  = pd.DataFrame(a11y_audit_actionable(a11y_audit_chart(p, level=input.level())))
+    def audit_table(p, level):
+        df  = pd.DataFrame(a11y_audit_actionable(a11y_audit_chart(p, level=level)))
         ths = "".join(f"<th>{escape(str(c))}</th>" for c in df.columns)
         trs = "".join(
             "<tr>" + "".join(f"<td>{escape(str(v))}</td>" for v in row) + "</tr>"
@@ -131,15 +139,15 @@ def server(input, output, session):
 
     @render.ui
     def audit_before():
-        return audit_table(base())
+        return audit_table(base(), input.level())
 
     @render.ui
     def audit_minimum():
-        return audit_table(minimum())
+        return audit_table(minimum(), input.level())
 
     @render.ui
     def audit_after():
-        return audit_table(accessible())
+        return audit_table(accessible(), input.level())
 
 app = App(app_ui, server)
 
@@ -147,7 +155,7 @@ app = App(app_ui, server)
 shiny
 plotnine
 pandas
-a11yviz==0.1.6
+a11yviz==0.1.7
 
 ## file: styles.css
 html, body { background: transparent; font-size: 14px; }

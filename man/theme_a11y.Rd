@@ -22,8 +22,8 @@ A \code{theme} object.
 \description{
 Adds a \code{ggplot2::theme} that applies WCAG 2.1 contrast settings plus
 the package's recommended font sizes. Compose with \code{+} like any other
-theme. The font sizes are package defaults, not WCAG-mandated minimums --
-WCAG specifies resizability and large-text thresholds, not absolute pt.
+theme. Title, axis title, and legend sit at the body floor (12 pt AA /
+14 pt AAA); axis tick text drops 2 pt below.
 }
 \examples{
 if (requireNamespace("ggplot2", quietly = TRUE)) {

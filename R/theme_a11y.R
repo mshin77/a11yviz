@@ -2,8 +2,8 @@
 #'
 #' Adds a `ggplot2::theme` that applies WCAG 2.1 contrast settings plus
 #' the package's recommended font sizes. Compose with `+` like any other
-#' theme. The font sizes are package defaults, not WCAG-mandated minimums --
-#' WCAG specifies resizability and large-text thresholds, not absolute pt.
+#' theme. Title, axis title, and legend sit at the body floor (12 pt AA /
+#' 14 pt AAA); axis tick text drops 2 pt below.
 #'
 #' @param level WCAG contrast level: `"AA"` (default) or `"AAA"`. The
 #'   level controls contrast targets and the package's default font
@@ -26,13 +26,14 @@ theme_a11y <- function(level = "AA", base_family = "", dark = FALSE) {
   fg     <- if (dark) "#dee2e6" else "#222222"
   bg     <- if (dark) "#2d2d2d" else "#ffffff"
   grid   <- if (dark) "#495057" else "#e5e5e5"
+  axis_sz <- fz$axis_text %||% fz$body
   ggplot2::theme_minimal(base_family = base_family, base_size = fz$body) +
     ggplot2::theme(
       text             = ggplot2::element_text(colour = fg, family = base_family),
       plot.title       = ggplot2::element_text(size = fz$body, face = "bold", colour = fg),
       plot.subtitle    = ggplot2::element_text(size = fz$body, colour = fg),
       axis.title       = ggplot2::element_text(size = fz$body, colour = fg),
-      axis.text        = ggplot2::element_text(size = fz$body, colour = fg),
+      axis.text        = ggplot2::element_text(size = axis_sz, colour = fg),
       legend.title     = ggplot2::element_text(size = fz$body, colour = fg),
       legend.text      = ggplot2::element_text(size = fz$body, colour = fg),
       strip.text       = ggplot2::element_text(size = fz$body, colour = fg),

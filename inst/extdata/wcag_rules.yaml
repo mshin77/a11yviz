@@ -1,4 +1,4 @@
-version: "0.1.6"
+version: "0.1.7"
 wcag_version: "2.1"
 
 contrast:
@@ -9,19 +9,18 @@ contrast:
     text: 7.0
     nontext: 3.0
 
-# Recommended font sizes (in pt). NOT WCAG-mandated. WCAG specifies
-# resizability (1.4.4) and large-text contrast thresholds (>=18pt or
-# >=14pt bold for success criterion 1.4.3), not absolute minimum sizes. The values
-# below are package defaults applied by theme_a11y() and a11y_layout().
+# pt. axis_text sits 2pt below the body floor.
 font_size:
   AA:
     body: 12
     title: 12
     legend: 12
+    axis_text: 10
   AAA:
     body: 14
     title: 14
     legend: 14
+    axis_text: 12
 
 # Palettes resolve from source packages at runtime, so the listed hex codes
 # are the authoritative source palette (RColorBrewer or viridisLite) -- no

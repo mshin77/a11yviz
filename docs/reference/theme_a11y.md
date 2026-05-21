@@ -3,9 +3,9 @@
 Adds a
 [`ggplot2::theme`](https://ggplot2.tidyverse.org/reference/theme.html)
 that applies WCAG 2.1 contrast settings plus the package's recommended
-font sizes. Compose with `+` like any other theme. The font sizes are
-package defaults, not WCAG-mandated minimums – WCAG specifies
-resizability and large-text thresholds, not absolute pt.
+font sizes. Compose with `+` like any other theme. Title, axis title,
+and legend sit at the body floor (12 pt AA / 14 pt AAA); axis tick text
+drops 2 pt below.
 
 ## Usage
 

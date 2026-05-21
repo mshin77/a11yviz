@@ -28,26 +28,33 @@ penguins <- na.omit(palmerpenguins::penguins)
 
 base_plot <- function() {
   ggplot(penguins, aes(flipper_length_mm, body_mass_g, color = species)) +
-    geom_point() +
-    labs(title = "Penguins (default ggplot)")
+    geom_point(size = 1.0, alpha = 0.45) +
+    labs(title = "Penguins (default)",
+         x = "flipper_length_mm", y = "body_mass_g") +
+    theme(text = element_text(size = 9))
 }
 
 minimum_plot <- function(level) {
-  a11y_minimum(base_plot(), level = level,
-               alt = "Penguin body mass vs flipper length, retrofit with alt text and minimum text size.")
+  threshold <- switch(level, AA = 12, AAA = 14)
+  p <- base_plot() + labs(title = sprintf("Penguins (minimum, %s)", level))
+  a11y_minimum(p, level = level,
+               alt = "Penguin body mass vs flipper length, retrofit with alt text and minimum text size.") +
+    ggplot2::theme(plot.title = ggplot2::element_text(size = threshold))
 }
 
 a11y_plot <- function(level) {
-  pal_name <- if (level == "AAA") "aaa_5" else "dark2_8"
+  pal_name <- switch(level, AA = "dark2_8", AAA = "aaa_5")
   palette  <- a11y_palette(pal_name, n = nlevels(droplevels(penguins$species)))
-  pt_size  <- if (level == "AAA") 2.5 else 2
+  pt_size  <- switch(level, AA = 1.8, AAA = 2.2)
   p <- ggplot(penguins, aes(flipper_length_mm, body_mass_g, color = species)) +
-    geom_point(size = pt_size, alpha = 0.85) +
+    geom_point(size = pt_size, alpha = 0.65) +
     scale_color_manual(values = palette) +
     theme_a11y(level = level) +
-    labs(title = "Penguins (theme_a11y + a11y_palette)",
-         x = "Flipper length (mm)", y = "Body mass (g)", color = "Species") +
-    theme(legend.position = "top")
+    theme(plot.title = element_text(face = "bold", hjust = 0),
+          legend.position = "top") +
+    labs(title = sprintf("Penguins (accessible, %s)", level),
+         x = "Flipper length (mm)", y = "Body mass (g)",
+         color = "Species")
   a11y_alt_text(p, "Penguin body mass vs flipper length by species, accessible chart.")
 }
 
@@ -62,7 +69,7 @@ panel_css <- paste(readLines("styles.css", warn = FALSE), collapse = "\n")
 
 panel_body <- function(plot_id, audit_id) {
   tagList(
-    plotOutput(plot_id, height = "320px"),
+    plotOutput(plot_id, height = "440px"),
     htmlOutput(audit_id)
   )
 }
@@ -122,14 +129,15 @@ a11y_palette <- function(name = "dark2_8", n = NULL) {
 }
 
 theme_a11y <- function(level = "AA") {
-  fz   <- if (level == "AAA") 14 else 12
+  fz      <- switch(level, AA = 12, AAA = 14)
+  axis_sz <- fz - 2
   fg   <- "#222222"; bg <- "#ffffff"; grid <- "#e5e5e5"
   ggplot2::theme_minimal(base_size = fz) +
     ggplot2::theme(
       text             = ggplot2::element_text(colour = fg),
       plot.title       = ggplot2::element_text(size = fz, face = "bold", colour = fg),
       axis.title       = ggplot2::element_text(size = fz, colour = fg),
-      axis.text        = ggplot2::element_text(size = fz, colour = fg),
+      axis.text        = ggplot2::element_text(size = axis_sz, colour = fg),
       legend.title     = ggplot2::element_text(size = fz, colour = fg),
       legend.text      = ggplot2::element_text(size = fz, colour = fg),
       panel.background = ggplot2::element_rect(fill = bg, colour = NA),
@@ -146,7 +154,7 @@ a11y_alt_text <- function(p, text) {
 }
 
 a11y_minimum <- function(p, alt = NULL, level = "AA") {
-  threshold <- if (level == "AAA") 14 else 12
+  threshold <- switch(level, AA = 12, AAA = 14)
   size      <- .base_size(p)
   if (!is.null(alt) && nzchar(alt)) p <- a11y_alt_text(p, alt)
   if (is.numeric(size) && size < threshold)
@@ -157,7 +165,7 @@ a11y_minimum <- function(p, alt = NULL, level = "AA") {
 .base_size <- function(p) {
   if (!inherits(p, "ggplot")) return(NULL)
   t <- p$theme
-  if (length(t) == 0)              return(NULL)
+  if (length(t) == 0)              return(ggplot2::theme_get()$text$size)
   if (isTRUE(attr(t, "complete"))) return(t$text$size)
   (ggplot2::theme_get() + t)$text$size
 }
@@ -166,7 +174,7 @@ a11y_audit_chart <- function(p, level = "AA") {
   alt_text  <- attr(p, "a11y_alt") %||% attr(p, "alt")
   has_alt   <- !is.null(alt_text) && nzchar(alt_text)
   applied   <- if (inherits(p, "ggplot")) "applied" else "unknown"
-  threshold <- if (level == "AAA") 14 else 12
+  threshold <- switch(level, AA = 12, AAA = 14)
   base_size <- .base_size(p)
   text_ok   <- is.numeric(base_size) && base_size >= threshold
   m         <- p$mapping

@@ -9,7 +9,7 @@ Composable additions to a plotnine chain.
 
 | Function | Description |
 |----|----|
-| `theme_a11y(level: str = 'AA', base_family: str = 'DejaVu Sans', dark: bool = False)` | Accessible ggplot2 theme |
+| `theme_a11y(level: str = 'AA', base_family: str = 'DejaVu Sans', dark: bool = False)` | Accessible plotnine theme. Title, axis title, and legend sit at the body floor (12 pt AA / 14 pt AAA); axis tick text drops 2 pt below. |
 | `scale_color_a11y(palette=None, level='AA', **kwargs)` | Accessible discrete color and fill scales |
 | `scale_fill_a11y(palette=None, level='AA', **kwargs)` | Accessible discrete color and fill scales |
 | `scale_color_a11y_div(palette: str = 'rdbu', **kwargs)` | Accessible diverging color and fill scales |
