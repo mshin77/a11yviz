@@ -27,5 +27,5 @@ Character scalar of CSS source.
 
 ``` r
 nchar(a11y_css_contents())
-#> [1] 6284
+#> [1] 6288
 ```

@@ -38,6 +38,7 @@ remotes::install_github("mshin77/a11yviz")
 ## Quick start
 
 ``` r
+
 library(ggplot2)
 library(palmerpenguins)
 library(a11yviz)
@@ -55,9 +56,9 @@ a11y_alt_text(p, "Scatter of penguin body mass vs flipper length by species.")
 ## Citation
 
 Shin, M. (2026). *a11yviz: Accessibility toolkit for ggplot2, plotly,
-and Quarto* (R package version 0.1.7).
+and Quarto* (R package version 0.1.8).
 <https://mshin77.github.io/a11yviz>
 
 Shin, M. (2026). *a11yviz: Accessibility toolkit for plotnine, plotly,
-and Quarto* (Python package version 0.1.7).
+and Quarto* (Python package version 0.1.8).
 <https://github.com/mshin77/a11yviz-py>

@@ -1,6 +1,7 @@
 # Getting started with a11yviz (R)
 
 ``` r
+
 library(a11yviz)
 library(ggplot2)
 library(palmerpenguins)
@@ -26,6 +27,7 @@ dt_show <- function(df) DT::datatable(df,
 ## Example
 
 ``` r
+
 p <- ggplot(penguins, aes(flipper_length_mm, body_mass_g, color = species)) +
   geom_point() +
   labs(x = "Flipper length (mm)", y = "Body mass (g)")
@@ -52,6 +54,7 @@ where the chart needs human attention.
 | `n/a` | not applicable to this chart type (e.g., hover on ggplot) |
 
 ``` r
+
 audit_p <- a11y_audit_chart(p)
 cat(a11y_audit_summary(audit_p))
 #> 3 to do, 0 ok, 3 already handled.
@@ -66,6 +69,7 @@ Two actionable items come back as `todo`:
 ## Accessible
 
 ``` r
+
 p_a11y <- ggplot(penguins, aes(flipper_length_mm, body_mass_g, color = species)) +
   geom_point(size = 2, alpha = 0.75) +
   theme_a11y() +
@@ -94,6 +98,7 @@ or facet by species to clear it.
 ## Audit again
 
 ``` r
+
 audit_a <- a11y_audit_chart(p_a11y)
 cat(a11y_audit_summary(audit_a))
 #> 1 to do, 1 ok, 4 already handled.
@@ -112,6 +117,7 @@ is the per-criterion reference: name, level, threshold, and the
 so the two join cleanly.
 
 ``` r
+
 dt_show(a11y_rubric())
 ```
 
@@ -124,6 +130,7 @@ keyboard focus rings, table styling, and responsive layout.
 skip-link, reduced-motion, and high-contrast rules.
 
 ``` r
+
 basename(a11y_css())
 #> [1] "a11yviz.css"
 ```
@@ -137,6 +144,7 @@ the accessible version with paired audit tables; toggle between WCAG AA
 and AAA in the sidebar. Requires `shiny`, `bslib`, and `DT`.
 
 ``` r
+
 run_app()
 ```
 

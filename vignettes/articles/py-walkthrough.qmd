@@ -311,7 +311,7 @@ app = App(app_ui, server)
 shiny
 plotnine
 pandas
-a11yviz==0.1.7
+a11yviz==0.1.8
 
 ## file: styles.css
 html, body { background: transparent; font-size: 14px; }
