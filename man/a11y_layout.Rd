@@ -4,7 +4,7 @@
 \alias{a11y_layout}
 \title{Apply accessible layout to a plotly figure}
 \usage{
-a11y_layout(p, level = "AA", palette = "dark2_8")
+a11y_layout(p, level = "AA", palette = "dark2_a11y_8")
 }
 \arguments{
 \item{p}{A plotly object (from \code{plotly::plot_ly} or \code{plotly::ggplotly}).}

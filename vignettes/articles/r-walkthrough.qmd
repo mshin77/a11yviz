@@ -199,7 +199,7 @@ minimum_plot <- function(level) {
 }
 
 a11y_plot <- function(level) {
-  pal_name <- switch(level, AA = "dark2_8", AAA = "aaa_5")
+  pal_name <- switch(level, AA = "dark2_a11y_8", AAA = "aaa_5")
   palette  <- a11y_palette(pal_name, n = nlevels(droplevels(penguins$species)))
   pt_size  <- switch(level, AA = 1.8, AAA = 2.2)
   p <- ggplot(penguins, aes(flipper_length_mm, body_mass_g, color = species)) +
@@ -274,11 +274,11 @@ shinyApp(app_ui, server)
 # a11yviz core (inlined; webR cannot install the package at runtime).
 `%||%` <- function(a, b) if (is.null(a)) b else a
 
-a11y_palette <- function(name = "dark2_8", n = NULL) {
+a11y_palette <- function(name = "dark2_a11y_8", n = NULL) {
   cols <- switch(name,
-    dark2_8 = c("#1B9E77", "#D95F02", "#7570B3", "#E7298A",
-                "#66A61E", "#E6AB02", "#A6761D", "#666666"),
-    aaa_5   = c("#154E8A", "#7C2C5E", "#5C5108", "#8A3A1F", "#2D5C53"),
+    dark2_a11y_8 = c("#1B9E77", "#D95F02", "#7570B3", "#E7298A",
+                     "#5E8C1A", "#8B4513", "#B8860B", "#2C6FAC"),
+    aaa_5        = c("#154E8A", "#7C2C5E", "#5C5108", "#8A3A1F", "#2D5C53"),
     stop(sprintf("Unknown palette '%s'.", name), call. = FALSE)
   )
   if (is.null(n)) cols else cols[seq_len(min(n, length(cols)))]

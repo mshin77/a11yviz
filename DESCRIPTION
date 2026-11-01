@@ -1,6 +1,6 @@
 Package: a11yviz
 Title: Accessibility Toolkit for 'ggplot2', 'plotly', and 'Quarto'
-Version: 0.1.8
+Version: 0.1.9
 Authors@R:
     person("Mikyung", "Shin", , "shin.mikyung@gmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0001-7907-9193", affiliation = "Illinois State University"))
@@ -42,4 +42,4 @@ URL: https://mshin77.github.io/a11yviz,
 BugReports: https://github.com/mshin77/a11yviz/issues
 VignetteBuilder: knitr, quarto
 Config/testthat/edition: 3
-Config/roxygen2/version: 8.0.0
+Config/roxygen2/version: 8.1.1

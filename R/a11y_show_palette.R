@@ -12,7 +12,7 @@
 #' if (requireNamespace("ggplot2", quietly = TRUE)) {
 #'   a11y_show_palette("dark2_8")
 #' }
-a11y_show_palette <- function(name = "dark2_8", bg = "#ffffff", level = "AA") {
+a11y_show_palette <- function(name = "dark2_a11y_8", bg = "#ffffff", level = "AA") {
   .require_pkg("ggplot2", "a11y_show_palette")
   level     <- .check_level(level)
   cols      <- a11y_palette(name)

@@ -9,6 +9,37 @@ test_that("aaa_5 is the literal AAA-on-white set", {
                c("#154E8A", "#7C2C5E", "#5C5108", "#8A3A1F", "#2D5C53"))
 })
 
+test_that("the default palette is dark2_a11y_8", {
+  expect_equal(a11y_palette(),
+               c("#1B9E77", "#D95F02", "#7570B3", "#E7298A",
+                 "#5E8C1A", "#8B4513", "#B8860B", "#2C6FAC"))
+  expect_equal(.scale_a11y_palette(NULL, "AA"), "dark2_a11y_8")
+  expect_equal(formals(make_a11y)$palette, "dark2_a11y_8")
+  expect_equal(formals(a11y_layout)$palette, "dark2_a11y_8")
+})
+
+test_that("new palettes hold their exact colors", {
+  expect_equal(a11y_palette("dark2_strict_5"),
+               c("#1B9E77", "#D95F02", "#7570B3", "#8B4513", "#C2185B"))
+  expect_equal(a11y_palette("okabe_ito"),
+               c("#E69F00", "#56B4E9", "#009E73", "#0072B2",
+                 "#D55E00", "#CC79A7", "#000000"))
+  expect_equal(a11y_palette("grayscale"), c("#1A1A1A", "#595959", "#8C8C8C"))
+})
+
+test_that("white-safe palettes reach 3:1 on white", {
+  for (nm in c("dark2_a11y_8", "dark2_strict_5", "grayscale")) {
+    res <- a11y_check_palette(a11y_palette(nm), level = "AA-large")
+    expect_true(all(res$status == "ok"), info = nm)
+  }
+})
+
+test_that("old palette names still work", {
+  for (nm in c("dark2_8", "set2_8", "paired_12", "aaa_5")) {
+    expect_true(length(a11y_palette(nm)) > 0, info = nm)
+  }
+})
+
 test_that("n truncates from the start", {
   expect_length(a11y_palette("dark2_8", n = 3), 3)
 })

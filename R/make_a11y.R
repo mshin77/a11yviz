@@ -15,7 +15,7 @@
 #'   p <- ggplot(mpg, aes(class, fill = drv)) + geom_bar()
 #'   make_a11y(p, palette = "dark2_8", alt = "Vehicle classes by drivetrain.")
 #' }
-make_a11y <- function(p, level = "AA", palette = "dark2_8", alt = NULL) {
+make_a11y <- function(p, level = "AA", palette = "dark2_a11y_8", alt = NULL) {
   if (inherits(p, "ggplot")) {
     .require_pkg("ggplot2", "make_a11y")
     p <- p + theme_a11y(level = level)

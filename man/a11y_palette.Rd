@@ -4,11 +4,12 @@
 \alias{a11y_palette}
 \title{Discrete color palette (categorical)}
 \usage{
-a11y_palette(name = "dark2_8", n = NULL, bg = NULL)
+a11y_palette(name = "dark2_a11y_8", n = NULL, bg = NULL)
 }
 \arguments{
-\item{name}{Discrete palette name. Built-in: \code{"dark2_8"} (default,
-RColorBrewer Dark2), \code{"set2_8"} (RColorBrewer Set2), \code{"paired_12"}
+\item{name}{Discrete palette name. Built-in: \code{"dark2_a11y_8"} (default,
+Dark2 look at 3:1 on white), \code{"dark2_strict_5"}, \code{"okabe_ito"},
+\code{"grayscale"}, \code{"dark2_8"} (RColorBrewer Dark2), \code{"set2_8"} (RColorBrewer Set2), \code{"paired_12"}
 (RColorBrewer Paired), \code{"aaa_5"} (custom AAA-on-white set).}
 
 \item{n}{Optional number of colors. Defaults to the palette's full size

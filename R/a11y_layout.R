@@ -13,7 +13,7 @@
 #'   unchanged.
 #' @return Modified plotly object.
 #' @export
-a11y_layout <- function(p, level = "AA", palette = "dark2_8") {
+a11y_layout <- function(p, level = "AA", palette = "dark2_a11y_8") {
   .require_pkg("plotly", "a11y_layout")
   level <- .check_level(level)
   rules <- .wcag_rules()

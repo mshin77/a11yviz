@@ -4,7 +4,7 @@
 \alias{a11y_show_palette}
 \title{Visualize a palette with WCAG contrast overlay}
 \usage{
-a11y_show_palette(name = "dark2_8", bg = "#ffffff", level = "AA")
+a11y_show_palette(name = "dark2_a11y_8", bg = "#ffffff", level = "AA")
 }
 \arguments{
 \item{name}{Discrete palette name. See \code{\link[=a11y_palette_list]{a11y_palette_list()}}.}

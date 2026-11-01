@@ -3,7 +3,7 @@
 #' Categorical palettes that meet WCAG 1.4.1 (Use of Color) by being
 #' distinguishable to viewers with color vision differences.
 #'
-#' @param palette One of `"dark2_8"` (default), `"set2_8"`, `"paired_12"`, `"aaa_5"`. See [a11y_palette_list()].
+#' @param palette One of `"dark2_a11y_8"` (default), `"dark2_strict_5"`, `"okabe_ito"`, `"grayscale"`, `"dark2_8"`, `"set2_8"`, `"paired_12"`, `"aaa_5"`. See [a11y_palette_list()].
 #' @param level WCAG contrast level. `"AAA"` switches the default palette to
 #'   `"aaa_5"` (deep, AAA-on-white set). Ignored if `palette` is set explicitly.
 #' @param ... Passed to `ggplot2::discrete_scale`.
@@ -23,7 +23,7 @@ NULL
 
 .scale_a11y_palette <- function(palette, level) {
   if (!missing(palette) && !is.null(palette)) return(palette)
-  if (!is.null(level) && toupper(level) == "AAA") "aaa_5" else "dark2_8"
+  if (!is.null(level) && toupper(level) == "AAA") "aaa_5" else "dark2_a11y_8"
 }
 
 #' @rdname scale_a11y

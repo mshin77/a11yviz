@@ -11,7 +11,7 @@ scale_color_a11y(palette = NULL, level = "AA", ...)
 scale_fill_a11y(palette = NULL, level = "AA", ...)
 }
 \arguments{
-\item{palette}{One of \code{"dark2_8"} (default), \code{"set2_8"}, \code{"paired_12"}, \code{"aaa_5"}. See \code{\link[=a11y_palette_list]{a11y_palette_list()}}.}
+\item{palette}{One of \code{"dark2_a11y_8"} (default), \code{"dark2_strict_5"}, \code{"okabe_ito"}, \code{"grayscale"}, \code{"dark2_8"}, \code{"set2_8"}, \code{"paired_12"}, \code{"aaa_5"}. See \code{\link[=a11y_palette_list]{a11y_palette_list()}}.}
 
 \item{level}{WCAG contrast level. \code{"AAA"} switches the default palette to
 \code{"aaa_5"} (deep, AAA-on-white set). Ignored if \code{palette} is set explicitly.}

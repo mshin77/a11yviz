@@ -4,7 +4,7 @@
 \alias{make_a11y}
 \title{One-shot accessibility wrapper}
 \usage{
-make_a11y(p, level = "AA", palette = "dark2_8", alt = NULL)
+make_a11y(p, level = "AA", palette = "dark2_a11y_8", alt = NULL)
 }
 \arguments{
 \item{p}{A ggplot or plotly object.}

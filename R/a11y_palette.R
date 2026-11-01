@@ -4,8 +4,9 @@
 #' palettes are runtime wrappers around `RColorBrewer::brewer.pal()` so the
 #' authoritative colors stay in their source package.
 #'
-#' @param name Discrete palette name. Built-in: `"dark2_8"` (default,
-#'   RColorBrewer Dark2), `"set2_8"` (RColorBrewer Set2), `"paired_12"`
+#' @param name Discrete palette name. Built-in: `"dark2_a11y_8"` (default,
+#'   Dark2 look at 3:1 on white), `"dark2_strict_5"`, `"okabe_ito"`,
+#'   `"grayscale"`, `"dark2_8"` (RColorBrewer Dark2), `"set2_8"` (RColorBrewer Set2), `"paired_12"`
 #'   (RColorBrewer Paired), `"aaa_5"` (custom AAA-on-white set).
 #' @param n Optional number of colors. Defaults to the palette's full size
 #'   (truncates from the start when smaller).
@@ -19,7 +20,7 @@
 #' a11y_palette("dark2_8")
 #' a11y_palette("aaa_5")
 #' a11y_palette("dark2_8", n = 4)
-a11y_palette <- function(name = "dark2_8", n = NULL, bg = NULL) {
+a11y_palette <- function(name = "dark2_a11y_8", n = NULL, bg = NULL) {
   spec <- .palette_spec(name)
   cols <- .resolve_discrete(spec, n)
   if (!is.null(bg)) .warn_if_unsafe(name, spec, bg)
@@ -38,7 +39,7 @@ a11y_palette <- function(name = "dark2_8", n = NULL, bg = NULL) {
 #' @export
 #' @examples
 #' a11y_palette_info("aaa_5")
-a11y_palette_info <- function(name = "dark2_8") {
+a11y_palette_info <- function(name = "dark2_a11y_8") {
   spec <- .palette_spec(name)
   c(list(name = name, colors = .resolve_discrete(spec, NULL)), spec)
 }
