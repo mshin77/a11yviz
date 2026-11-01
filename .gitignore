@@ -29,3 +29,7 @@ vignettes/articles/*.html
 *.swp
 *~
 tools/
+
+# shinylive build leftovers
+vignettes/**/shinylive-sw.js
+vignettes/articles/wheels/
